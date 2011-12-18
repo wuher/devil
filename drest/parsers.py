@@ -11,17 +11,17 @@ import errors
 
 
 class Parser(object):
-    def parse(self, request, *args, **kw):
+    def __call__(self, request, *args, **kw):
         pass
 
 
 class DefaultParser(object):
-    def parse(self, request, *args, **kw):
+    def __call__(self, request, *args, **kw):
         return request.raw_post_data
 
 
 class JsonParser(Parser):
-    def parse(self, request, *args, **kw):
+    def __call__(self, request, *args, **kw):
         if not request.raw_post_data:
             raise errors.BadRequest('no data given')
         try:
@@ -49,7 +49,7 @@ class ParserManager(object):
 
     def register_parser(self, parser, content_type, shortname=None):
         """ Register new parser. """
-        if not parser or not hasattr(parser, 'parse') or not callable(parser.parse):
+        if not parser or not callable(parser):
             raise ValueError('parser must implement parse()')
         self.parsermap[content_type] = parser
         if shortname:
@@ -100,7 +100,7 @@ parsermanager = ParserManager()
 
 # utility function. by default, this is the only public function you need.
 def parse(request, *args, **kw):
-    return parsermanager.select_parser(request, *args, **kw).parse(request, *args, **kw)
+    return parsermanager.select_parser(request, *args, **kw)(request, *args, **kw)
 
 
 #
