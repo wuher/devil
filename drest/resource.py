@@ -7,7 +7,7 @@
 
 
 from django.http import HttpResponse
-import errors, formatters, parsers
+import errors, datamapper
 
 
 # todo: move somewhere and add note about borrowing this from piston
@@ -64,7 +64,7 @@ class Resource(object):
         try:
             return self._handle_request(request, *args, **kw)
         except errors.HttpStatusCodeError, e:
-            return _get_error_response(e)
+            return self._get_error_response(e)
 
     def _handle_request(self, request, *args, **kw):
         """  """
@@ -72,19 +72,27 @@ class Resource(object):
         data = self._get_input_data(request, *args, **kw)
         # params = self._get_input_params(request, *args, **kw)
         response = self._exec_method(method, request, data, *args, **kw)
-        response = self._format_response(response)
+        response = self._format_response(request, response, *args, **kw)
         return response
 
     def _exec_method(self, method, request, data, *args, **kw):
         """ """
         if self._is_data_method(request):
-            return method(request, data, *args, **kw)
+            return method(data, request, *args, **kw)
         else:
             return method(request, *args, **kw)
 
-    def _format_response(self, response):
+    def _format_response(self, request, response, *args, **kw):
         """ """
-        return HttpResponse(repr(response), mimetype="text/plain")
+        if response is None:
+            res = datamapper.get_empty_response(request, *args, **kw)
+        elif isinstance(response, HttpResponse):
+            res = response
+        else:
+            res = datamapper.format(request, response, *args, **kw)
+        if res.status_code is 0:
+            res.status_code = 200
+        return res
 
     def _get_input_data(self, request, *args, **kw):
         """ If there is data, parse it, otherwise return None. """
@@ -93,7 +101,10 @@ class Resource(object):
             return None
 
         if request.raw_post_data:
-            return self._parse_data(request, *args, **kw)
+            print '<<'
+            tmp = self._parse_data(request, *args, **kw)
+            print '>>', tmp
+            return tmp
         elif not self.allow_empty_data:
             raise errors.BadRequest('no data provided')
         else:
@@ -105,11 +116,12 @@ class Resource(object):
         if self.parser:
             return self.parser(request, *args, **kw)
         else:
-            return parsers.parse(request, *args, **kw)
+            return datamapper.parse(request, *args, **kw)
 
     def _get_error_response(self, exc):
+        print exc.__dict__
         content = exc.content if exc.content else None
-        return HttpResponse(content, exc.get_code())
+        return HttpResponse(content=content, status=exc.get_code())
 
     def _get_method(self, request):
         """ Figure out the requested method and return the callable. """

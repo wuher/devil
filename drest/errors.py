@@ -25,17 +25,22 @@ class HttpStatusCodeError(Exception):
 
 class BadRequest(HttpStatusCodeError):
     def __init__(self, *args, **kw):
-        HttpStatusCodeError.__init__(self, codes.BAD_REQUEST)
+        HttpStatusCodeError.__init__(self, codes.BAD_REQUEST, *args, **kw)
 
 
 class NotFound(HttpStatusCodeError):
     def __init__(self, *args, **kw):
-        HttpStatusCodeError.__init__(self, codes.NOT_FOUND)
+        HttpStatusCodeError.__init__(self, codes.NOT_FOUND, *args, **kw)
+
+
+class NotAcceptable(HttpStatusCodeError):
+    def __init__(self, *args, **kw):
+        HttpStatusCodeError.__init__(self, codes.NOT_ACCEPTABLE, *args, **kw)
 
 
 class MethodNotAllowed(HttpStatusCodeError):
     def __init__(self, *args, **kw):
-        HttpStatusCodeError.__init__(self, codes.NOT_FOUND)
+        HttpStatusCodeError.__init__(self, codes.NOT_FOUND, *args, **kw)
 
 
 #

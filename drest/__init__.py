@@ -6,23 +6,22 @@
 #
 
 
-import parsers
+import datamapper
 
 
-def register_parsers():
-    jsonparser = parsers.JsonParser()
+def register_mappers():
+    jsonmapper = datamapper.JsonMapper()
 
-    # json parser
-    parsers.parsermanager.register_parser(parsers.JsonParser(), 'application/json', 'json')
+    # json mapper
+    datamapper.manager.register_mapper(jsonmapper, 'application/json', 'json')
 
     # we'll be tolerant on what we receive
-    # parsers.parsermanager.register_parser('application/x-javascript': parsers.JsonParser())
-    # parsers.parsermanager.register_parser('text/javascript': parsers.JsonParser())
-    # parsers.parsermanager.register_parser('text/x-javascript': parsers.JsonParser())
-    # parsers.parsermanager.register_parser('text/x-json': parsers.JsonParser())
+    datamapper.manager.register_mapper(jsonmapper, 'application/x-javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/x-javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/x-json', 'json')
 
-
-register_parsers()
+register_mappers()
 
 #
 # __init__.py ends here

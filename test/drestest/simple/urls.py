@@ -11,10 +11,14 @@ from drest.resource import Resource
 import resources
 
 
-testresource = resources.MyTestResource()
+dictresource = resources.MyDictResource()
+textresource = resources.MyTextResource()
+respresource = resources.MyRespResource()
 
 urlpatterns = patterns('',
-    url(r'^test/', testresource),
+    url(r'^mapper/dict', dictresource),
+    url(r'^mapper/text', textresource),
+    url(r'^mapper/resp', respresource),
 )
 
 

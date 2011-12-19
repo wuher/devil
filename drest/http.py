@@ -15,6 +15,7 @@ CODES = dict(
     FORBIDDEN = ('Forbidden', 403),
     NOT_FOUND = ('Not Found', 404),
     METHOD_NOT_ALLOWED = ('Method Not Allowed', 405),
+    NOT_ACCEPTABLE = ('Not Acceptable', 406),
     DUPLICATE_ENTRY = ('Conflict/Duplicate', 409),
     NOT_HERE = ('Gone', 410),
     INTERNAL_ERROR = ('Internal Error', 500),
@@ -24,6 +25,12 @@ CODES = dict(
 class Codes(object): pass
 codes = Codes()
 codes.__dict__.update(CODES)
+
+
+class Response(object):
+    def __init__(self, code, data):
+        self.code = code
+        self.content = data
 
 
 #
