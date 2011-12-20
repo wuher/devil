@@ -101,10 +101,7 @@ class Resource(object):
             return None
 
         if request.raw_post_data:
-            print '<<'
-            tmp = self._parse_data(request, *args, **kw)
-            print '>>', tmp
-            return tmp
+            return self._parse_data(request, *args, **kw)
         elif not self.allow_empty_data:
             raise errors.BadRequest('no data provided')
         else:
