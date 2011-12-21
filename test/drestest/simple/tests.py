@@ -6,7 +6,7 @@ Replace this with more appropriate tests for your application.
 """
 
 
-import json
+import json, base64
 from django.test import TestCase
 from django.test.client import Client
 from drest import datamapper
@@ -22,6 +22,59 @@ class FakeRequest(object):
         self.META = {}
         if content_type:
             self.META['CONTENT_TYPE'] = content_type
+
+
+class DrestClient(Client):
+
+    def __init__(self, username=None, password=None, *args, **kw):
+        Client.__init__(self, *args, **kw)
+        self._authorization = {}
+        if username and password:
+            auth = base64.b64encode('%s:%s' % (username, password))
+            self._authorization = {
+                'HTTP_AUTHORIZATION': 'Basic %s' % (auth,)
+                }
+
+    def _get_params(self, **kw):
+        params = self._authorization.copy()
+        params.update(kw)
+        return params
+
+    def get(self, path, data={}, *args, **kw):
+        return super(DrestClient, self).get(
+            path, data, *args, **(self._get_params(**kw)))
+
+    def post(self, path, data={}, *args, **kw):
+        return super(DrestClient, self).post(
+            path, data, *args, **(self._get_params(**kw)))
+
+    def put(self, path, data={}, *args, **kw):
+        return super(DrestClient, self).put(
+            path, data, *args, **(self._get_params(**kw)))
+
+    def delete(self, path, data={}, *args, **kw):
+        return super(DrestClient, self).delete(
+            path, data, *args, **(self._get_params(**kw)))
+
+
+class AuthTest(TestCase):
+
+    fixtures = [
+        'auth_user.json',
+        ]
+
+    def test_auth(self):
+        tests = (
+            (None, None, 401),
+            ('john', 'doe', 403),
+            ('sith', 'jedi', 403),
+            ('jedi', 'jedi', 200),
+            ('sith', 'sith', 200),
+            )
+        for username, password, result in tests:
+            client = DrestClient(username=username, password=password)
+            response = client.get('/simple/auth/get')
+            self.assertEquals(response.status_code, result)
 
 
 class HttpParseTest(TestCase):

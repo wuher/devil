@@ -9,6 +9,7 @@
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 import errors, datamapper
+from http import codes
 
 
 # todo: move and make configurable
@@ -124,9 +125,8 @@ class Resource(object):
 
     def _get_error_response(self, exc):
         """ Generate HttpResponse based on the HttpStatusCodeError. """
-        print exc.__dict__
         if exc.has_code(codes.UNAUTHORIZED):
-            return _get_auth_challenge(exc)
+            return self._get_auth_challenge(exc)
         else:
             return HttpResponse(content=exc.content, status=exc.get_code_num())
 

@@ -14,8 +14,10 @@ import resources
 dictresource = resources.MyDictResource()
 textresource = resources.MyTextResource()
 respresource = resources.MyRespResource()
+authresource = resources.MyAuthResource()
 
 urlpatterns = patterns('',
+    url(r'^auth/get', authresource),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),

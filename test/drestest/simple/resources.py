@@ -8,7 +8,13 @@
 
 from drest.resource import Resource
 from drest.http import Response
+from drest.auth import HttpBasic
 
+
+class MyAuthResource(Resource):
+    authentication = HttpBasic()
+    def get(self, request, *args, **kw):
+        return 'Hello, Auth!'
 
 class MyRespResource(Resource):
     def get(self, request, *args, **kw):

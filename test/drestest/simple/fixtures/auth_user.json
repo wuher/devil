@@ -1,0 +1,56 @@
+[
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "yoda", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2011-12-21 07:30:10", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$b5dcf$b2065d05d4f67ec0aa6d8d454337631cf13e00b2", 
+            "email": "yoda@rebillion.net", 
+            "date_joined": "2011-12-21 07:30:10"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "jedi", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-21 07:46:09", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$c2c85$9d8d7bd3f6123a37fc7634f4444dfd5717d6fcb4", 
+            "email": "", 
+            "date_joined": "2011-12-21 07:46:09"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "sith", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2011-12-21 07:47:02", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$90814$1720b6abfc7267d0921453297c2fc09298db0a43", 
+            "email": "", 
+            "date_joined": "2011-12-21 07:47:02"
+        }
+    }
+]
