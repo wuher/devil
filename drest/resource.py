@@ -6,8 +6,13 @@
 #
 
 
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 import errors, datamapper
+
+
+# todo: move and make configurable
+REALM = "test"
 
 
 # todo: move somewhere and add note about borrowing this from piston
@@ -52,6 +57,7 @@ class Resource(object):
 
     use_access_control = False
     allow_empty_data = True
+    authentication = None
     presentation = None
     parameters = None
     formatter = None
@@ -68,6 +74,7 @@ class Resource(object):
 
     def _handle_request(self, request, *args, **kw):
         """  """
+        user = self._authenticate(request)
         method = self._get_method(request)
         data = self._get_input_data(request, *args, **kw)
         # params = self._get_input_params(request, *args, **kw)
@@ -116,9 +123,18 @@ class Resource(object):
             return datamapper.parse(request, *args, **kw)
 
     def _get_error_response(self, exc):
+        """ Generate HttpResponse based on the HttpStatusCodeError. """
         print exc.__dict__
-        content = exc.content if exc.content else None
-        return HttpResponse(content=content, status=exc.get_code())
+        if exc.has_code(codes.UNAUTHORIZED):
+            return _get_auth_challenge(exc)
+        else:
+            return HttpResponse(content=exc.content, status=exc.get_code_num())
+
+    def _get_auth_challenge(self, exc):
+        """ Returns HttpResponse for the client. """
+        response = HttpResponse(content=exc.content, status=exc.get_code_num())
+        response['WWW-Authenticate'] = 'Basic realm="%s"' % REALM
+        return response
 
     def _get_method(self, request):
         """ Figure out the requested method and return the callable. """
@@ -132,7 +148,11 @@ class Resource(object):
         """ Return True, if request method is either PUT or POST """
         return request.method.upper() in ('PUT', 'POST')
 
-
+    def _authenticate(self, request):
+        if self.authentication:
+            return self.authentication.authenticate(request)
+        else:
+            return AnonymousUser()
 
 #
 # resource.py ends here

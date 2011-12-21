@@ -15,18 +15,33 @@ class HttpStatusCodeError(Exception):
         self.content = content
         Exception.__init__(self, *args, **kw)
 
-    def get_code(self):
+    def get_code_num(self):
         try:
             return self.code[1]
         except TypeError:
             # maybe int code was given instead..
             return self.code
 
+    def has_code(self, code):
+        mycode = self.get_code_num()
+        try:
+            return mycode is code[1]
+        except TypeError:
+            return mycode is code
+
 
 class BadRequest(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.BAD_REQUEST, *args, **kw)
 
+
+class Unauthorized(HttpStatusCodeError):
+    def __init__(self, *args, **kw):
+        HttpStatusCodeError.__init__(self, codes.UNAUTHORIZED, *args, **kw)
+
+class Forbidden(HttpStatusCodeError):
+    def __init__(self, *args, **kw):
+        HttpStatusCodeError.__init__(self, codes.FORBIDDEN, *args, **kw)
 
 class NotFound(HttpStatusCodeError):
     def __init__(self, *args, **kw):
