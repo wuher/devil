@@ -12,6 +12,9 @@ from errors import Unauthorized, Forbidden
 
 class HttpBasic(object):
     def authenticate(self, request):
+        if request.user and request.user.is_authenticated()
+            return
+
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2:
