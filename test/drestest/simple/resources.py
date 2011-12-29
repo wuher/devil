@@ -16,6 +16,7 @@ class MyPermResource(Resource):
     """ Access controlled resource """
 
     access_controller = PermissionController()
+    allow_empty_data = True
     authentication = HttpBasic()
 
     def get(self, request, *args, **kw):

@@ -188,6 +188,15 @@ class HttpParseTest(TestCase):
         self.assertEquals(response.content, '')
         self.assertEquals(testurls.dictresource.mydata, {'a': 1})
 
+    def test_post_empty_data(self):
+        client = Client()
+        response = client.put(
+            '/simple/mapper/dict/',
+            '',
+            'application/json')
+        self.assertEquals(response.status_code, 400)
+
+
 class HttpFormatTest(TestCase):
     """ Test formatting using test client """
 

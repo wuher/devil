@@ -59,7 +59,7 @@ class Resource(object):
     # configuration parameters
 
     access_controller = None
-    allow_empty_data = True
+    allow_empty_data = False
     authentication = None
     presentation = None
     parameters = None
