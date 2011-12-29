@@ -108,12 +108,16 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+ACL_RESOURCES = (
+    'drestest.simple.urls.acl_resources',
+    )
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    # 'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django.contrib.sessions',
+    'drest.perm',
     'drestest.simple',
 )
 

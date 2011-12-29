@@ -12,8 +12,21 @@ from errors import Unauthorized, Forbidden
 
 class HttpBasic(object):
     def authenticate(self, request):
-        if request.user and request.user.is_authenticated()
-            return
+        """ Authenticate request using HTTP Basic authentication protocl.
+
+        If the user is successfully identified, the corresponding user
+        object is stored in `request.user`. If the request has already
+        been authenticated (i.e. `request.user` has authenticated user
+        object), this function does nothing.
+
+        Raises Forbidden or Unauthorized if the user authentication
+        fails. If no exception is thrown, the `request.user` will
+        contain authenticated user object.
+        """
+
+        # todo: can we trust that request.user variable is even defined?
+        if request.user and request.user.is_authenticated():
+            return request.user
 
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()

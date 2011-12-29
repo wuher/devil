@@ -8,9 +8,15 @@
 
 from django.conf.urls.defaults import patterns, include, url
 
+# admin:
+from django.contrib import admin
+admin.autodiscover()
+
 
 urlpatterns = patterns('',
     url(r'^simple/', include('drestest.simple.urls')),
+    # uncomment to enable admin:
+    (r'^admin/', include(admin.site.urls)),
 )
 
 

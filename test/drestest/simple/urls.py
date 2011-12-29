@@ -15,9 +15,24 @@ dictresource = resources.MyDictResource()
 textresource = resources.MyTextResource()
 respresource = resources.MyRespResource()
 authresource = resources.MyAuthResource()
+anonresource = resources.MyAnonResource()
+permresource = resources.MyPermResource()
+
+
+acl_resources = (
+    dictresource,
+    textresource,
+    respresource,
+    authresource,
+    anonresource,
+    permresource,
+    )
+
 
 urlpatterns = patterns('',
-    url(r'^auth/get', authresource),
+    url(r'^perm', permresource),
+    url(r'^auth/anon', anonresource),
+    url(r'^auth', authresource),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),

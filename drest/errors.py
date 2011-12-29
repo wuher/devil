@@ -55,7 +55,7 @@ class NotAcceptable(HttpStatusCodeError):
 
 class MethodNotAllowed(HttpStatusCodeError):
     def __init__(self, *args, **kw):
-        HttpStatusCodeError.__init__(self, codes.NOT_FOUND, *args, **kw)
+        HttpStatusCodeError.__init__(self, codes.METHOD_NOT_ALLOWED, *args, **kw)
 
 
 #

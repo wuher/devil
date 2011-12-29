@@ -56,7 +56,9 @@ def coerce_put_post(request):
 
 class Resource(object):
 
-    use_access_control = False
+    # configuration parameters
+
+    access_controller = None
     allow_empty_data = True
     authentication = None
     presentation = None
@@ -67,15 +69,26 @@ class Resource(object):
 
     def __call__(self, request, *args, **kw):
         """ Entry point for HTTP requests. """
+
         coerce_put_post(request) #django-fix
         try:
             return self._handle_request(request, *args, **kw)
         except errors.HttpStatusCodeError, e:
             return self._get_error_response(e)
 
+    def name(self):
+        """ Return resource's name.
+
+        This is used mainly by the permission module to determine the
+        name of a permission.
+        """
+
+        return self.__class__.__name__
+
     def _handle_request(self, request, *args, **kw):
         """  """
-        user = self._authenticate(request)
+        self._authenticate(request)
+        self._check_permission(request)
         method = self._get_method(request)
         data = self._get_input_data(request, *args, **kw)
         # params = self._get_input_params(request, *args, **kw)
@@ -148,11 +161,72 @@ class Resource(object):
         """ Return True, if request method is either PUT or POST """
         return request.method.upper() in ('PUT', 'POST')
 
+    def _allow_anonymous(self, request):
+        """ Do we grant anonymous access.
+
+        @return True, if anonymous access is granted, False if not
+
+        todo: maybe we could ask this from the access_controller?
+        """
+        return True
+
     def _authenticate(self, request):
+        """ Perform authentication. """
+
+        def ensure_user_obj():
+            """ Make sure that request object has user property.
+
+            If `request.user` is not present or is `None`, it is
+            created and initialized with AnonymousUser.
+            """
+
+            try:
+                if request.user:
+                    return
+            except AttributeError:
+                pass
+
+            request.user = AnonymousUser()
+
+        def anonymous_access(exc_obj):
+            """ Determine what to do with unauthenticated requests.
+
+            If the request has already been authenticated, does
+            nothing.
+
+            @param exc_obj exception object to be thrown if anonymous
+            access is not permitted.
+            """
+
+            if request.user and request.user.is_authenticated():
+                # request is already authenticated
+                pass
+            elif self._allow_anonymous(request):
+                request.user = AnonymousUser()
+            else:
+                raise exc_obj
+
+        # first, make sure that the request carries `user` attribute
+        ensure_user_obj()
         if self.authentication:
-            return self.authentication.authenticate(request)
+            # authentication handler is configured
+            try:
+                self.authentication.authenticate(request)
+            except errors.Unauthorized, exc:
+                # http request doesn't carry any authentication information
+                anonymous_access(exc)
         else:
-            return AnonymousUser()
+            # no authentication configured
+            anonymous_access(errors.Forbidden())
+
+    def _check_permission(self, request):
+        """ Check user permissions.
+
+        @raise Forbidden if user doesn't have access to the resource.
+        """
+        if self.access_controller:
+            self.access_controller.check_perm(request, self)
+
 
 #
 # resource.py ends here
