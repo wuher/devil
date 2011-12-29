@@ -31,6 +31,11 @@ class DataMapper(object):
         return data
 
     def _prepare_response(self, response):
+        """ Coerce response to drest's Response
+
+        @return Response
+        """
+
         if not isinstance(response, Response):
             return Response(0, response)
         return response
