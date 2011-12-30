@@ -78,8 +78,6 @@ class Resource(object):
     allow_empty_data = False
     authentication = None
     representation = None
-    parameters = None
-    formatter = None
     mapper = None
 
     def __call__(self, request, *args, **kw):
