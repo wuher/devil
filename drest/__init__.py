@@ -11,6 +11,10 @@ import datamapper
 
 def register_mappers():
     jsonmapper = datamapper.JsonMapper()
+    textmapper = datamapper.DataMapper()
+
+    # text mapper
+    datamapper.manager.register_mapper(textmapper, 'text/plain', 'text')
 
     # json mapper
     datamapper.manager.register_mapper(jsonmapper, 'application/json', 'json')

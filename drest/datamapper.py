@@ -10,24 +10,56 @@ import re, json
 from django.http import HttpResponse
 import errors
 from http import Response
+import util
 
 
 class DataMapper(object):
     content_type = 'text/plain'
     charset = 'utf-8'
 
-    def format(self, request, response, *args, **kw):
+    def format(self, request, response):
+        """ Format the data.
+
+        It is usually a better idea to override `_format_data()` than
+        this method in derived classes.
+
+        @param response drests's `Response` object or the data
+        itself. May also be `None`.
+        """
         res = self._prepare_response(response)
         res.content = self._format_data(res.content)
         return self._finalize_response(res)
 
-    def parse(self, request, *args, **kw):
-        return self._parse_data(request.raw_post_data)
+    def parse(self, request):
+        """ Parse the data.
+
+        It is usually a better idea to override `_parse_data()` than
+        this method in derived classes.
+
+        @param request either `HttpRequest` or the data itself.
+        """
+
+        try:
+            data = request.raw_post_data
+        except AttributeError:
+            # no raw_post_data, maybe the parameter is the data
+            data = request
+        return self._parse_data(data)
 
     def _format_data(self, data):
-        return data
+        """ Format the data
+
+        @param data the data (may be None)
+        """
+
+        return data if data is not None else ''
 
     def _parse_data(self, data):
+        """ Parse the data
+
+        @param data the data
+        """
+
         return data
 
     def _prepare_response(self, response):
@@ -47,24 +79,19 @@ class DataMapper(object):
         res.status_code = response.code
         return res
 
+    def _get_empty_format(self):
+        """ Override to provide something else for empty responses. """
+        return ''
+
     def _get_content_type(self):
         return '%s; charset=%s' % (self.content_type, self.charset)
-
-
-
-class DefaultMapper(DataMapper):
-    def _format_data(self, data):
-        return data
-
-    def _parse_data(self, data):
-        return data
 
 
 class JsonMapper(DataMapper):
     content_type = 'application/json'
 
     def _format_data(self, data):
-        return json.dumps(data)
+        return json.dumps(data) if data is not None else ''
 
     def _parse_data(self, data):
         try:
@@ -87,7 +114,7 @@ class DataMapperManager(object):
     3. file-extension in the requestd URL (e.g. /user.json)
     """
 
-    _default_mapper = DefaultMapper()
+    _default_mapper = DataMapper()
     _format_query_pattern = re.compile('.*\.(?P<format>\w{1,8})$')
     _datamappers = {
         }
@@ -99,28 +126,29 @@ class DataMapperManager(object):
         if shortname:
             self._datamappers[shortname] = mapper
 
-    def select_formatter(self, request, *args, **kw):
-        mapper_name = self._get_short_name(request, *args, **kw)
+    def select_formatter(self, request):
+        mapper_name = self._get_short_name(request)
         return self._get_mapper(mapper_name)
 
-    def select_parser(self, request, *args, **kw):
-        mapper_name = self._get_mapper_name(request, *args, **kw)
+    def select_parser(self, request):
+        mapper_name = self._get_mapper_name(request)
         return self._get_mapper(mapper_name)
+
+    def get_mapper_by_content_type(self, content_type):
+        content_type = util.strip_charset(content_type)
+        return self._get_mapper(content_type)
 
     def set_default_mapper(self, mapper):
         """ Set the default mapper to be used, when no format is defined.
 
-        If given mapper is None, uses the DefaultMapper.
+        If given mapper is None, uses the `DataMapper`.
         """
 
         if mapper is None:
-            self._default_mapper = DefaultMapper()
+            self._default_mapper = DataMapper()
         else:
             self._check_mapper(mapper)
             self._default_mapper = mapper
-
-    def get_empty_response(self, request, *args, **kw):
-        return DataMapper().format(None, '')
 
     def _get_mapper(self, mapper_name):
         """ Select appropriate mapper for the incoming data. """
@@ -134,17 +162,17 @@ class DataMapperManager(object):
             # mapper found
             return self._datamappers[mapper_name]
 
-    def _get_mapper_name(self, request, *args, **kw):
+    def _get_mapper_name(self, request):
         """ """
         content_type = request.META.get('CONTENT_TYPE', None)
 
         if not content_type:
-            return self._get_short_name(request, *args, **kw)
+            return self._get_short_name(request)
         else:
             # remove the possible charset-encoding info
-            return content_type.split(';')[0]
+            return util.strip_charset(content_type)
 
-    def _get_short_name(self, request, *args, **kw):
+    def _get_short_name(self, request):
         """ """
         format = request.GET.get('format', None)
         if not format:
@@ -172,17 +200,13 @@ class DataMapperManager(object):
 # singleton instance
 manager = DataMapperManager()
 
-# return default empty response
-def get_empty_response(request, *args, **kw):
-    return manager.get_empty_response(request, *args, **kw)
-
 # utility function to parse incoming data (selects formatter automatically)
-def format(request, response, *args, **kw):
-    return manager.select_formatter(request, *args, **kw).format(request, response, *args, **kw)
+def format(request, response):
+    return manager.select_formatter(request).format(request, response)
 
 # utility function to parse incoming data (selects parser automatically)
-def parse(request, *args, **kw):
-    return manager.select_parser(request, *args, **kw).parse(request, *args, **kw)
+def parse(request):
+    return manager.select_parser(request).parse(request)
 
 
 #

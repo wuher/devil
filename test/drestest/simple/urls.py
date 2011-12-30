@@ -17,7 +17,9 @@ respresource = resources.MyRespResource()
 authresource = resources.MyAuthResource()
 anonresource = resources.MyAnonResource()
 permresource = resources.MyPermResource()
-
+noneresource = resources.MyNoneResource()
+mapperresource = resources.MyMapperResource()
+validationresource = resources.MyValidationResource()
 
 acl_resources = (
     dictresource,
@@ -33,9 +35,12 @@ urlpatterns = patterns('',
     url(r'^perm', permresource),
     url(r'^auth/anon', anonresource),
     url(r'^auth', authresource),
+    url(r'^valid', validationresource),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),
+    url(r'^mapper/none', noneresource),
+    url(r'^mapper/reverse', mapperresource),
 )
 
 

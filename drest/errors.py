@@ -57,6 +57,10 @@ class MethodNotAllowed(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.METHOD_NOT_ALLOWED, *args, **kw)
 
+class InternalServerError(HttpStatusCodeError):
+    def __init__(self, *args, **kw):
+        HttpStatusCodeError.__init__(self, codes.INTERNAL_SERVER_ERROR, *args, **kw)
+
 
 #
 # errors.py ends here

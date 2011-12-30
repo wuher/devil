@@ -1,9 +1,9 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
+#  -*- coding: utf-8 -*-
+# tests.py ---
+#
+# Created: Fri Dec 30 23:38:50 2011 (+0200)
+# Author: Janne Kuuskeri
+#
 
 
 import json, base64
@@ -196,6 +196,17 @@ class HttpParseTest(TestCase):
             'application/json')
         self.assertEquals(response.status_code, 400)
 
+    def test_my_mapper(self):
+        client = Client()
+        response = client.put(
+            '/simple/mapper/reverse',
+            'reppam ,olleh',
+            'text/plain')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
+        self.assertEquals(testurls.mapperresource.last_data, 'hello, mapper')
+        self.assertEquals(response.content, '')
+
 
 class HttpFormatTest(TestCase):
     """ Test formatting using test client """
@@ -228,12 +239,26 @@ class HttpFormatTest(TestCase):
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.content, '"hello text"')
 
+    def test_none_response(self):
+        client = Client()
+        response = client.get('/simple/mapper/none?format=json')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(response.content, '')
+
     def test_json_from_response(self):
         client = Client()
         response = client.get('/simple/mapper/resp/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.content, '{"jedi": "luke"}')
+
+    def test_my_mapper(self):
+        client = Client()
+        response = client.get('/simple/mapper/reverse')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
+        self.assertEquals(response.content, 'reppam ,olleh')
 
 
 class MapperFormatTest(TestCase):
@@ -259,6 +284,20 @@ class MapperFormatTest(TestCase):
         response = datamapper.format(request, 'Hello, world!')
         self.assertEquals(response.content, 'Hello, world!')
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
+
+    def test_none_data_default(self):
+        request = FakeRequest('/hiihoo')
+        response = datamapper.format(request, None)
+        self.assertEquals(response.content, '')
+        self.assertEquals(response.status_code, 0)
+        self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
+
+    def test_none_data_json(self):
+        request = FakeRequest('/hiihoo', format='json')
+        response = datamapper.format(request, None)
+        self.assertEquals(response.content, '')
+        self.assertEquals(response.status_code, 0)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
 
     def test_my_default_formatter(self):
         class MyDataMapper(datamapper.DataMapper):
@@ -339,3 +378,42 @@ class MapperParseTest(TestCase):
         request = FakeRequest('/hiihoo.json', '[]')
         self.assertEquals([], datamapper.parse(request))
 
+
+class ValidationTest(TestCase):
+
+    def test_parse_validation_pass(self):
+        client = Client()
+        response = client.put(
+            '/simple/valid?format=json',
+            '{"name": "Luke"}',
+            'application/json')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(response.content, '')
+
+    def test_parse_validation_fail(self):
+        client = Client()
+        response = client.put(
+            '/simple/valid?format=json',
+            '{"name": "Luke Skywalker"}',
+            'application/json')
+        self.assertEquals(response.status_code, 400)
+
+    def test_format_validation_pass(self):
+        client = Client()
+        response = client.get('/simple/valid?format=json&status=good')
+        self.assertEquals(response.status_code, 200)
+
+    def test_format_validation_fail1(self):
+        client = Client()
+        response = client.get('/simple/valid?format=json&a=b')
+        self.assertEquals(response.status_code, 500)
+
+    def test_format_validation_fail2(self):
+        client = Client()
+        response = client.get('/simple/valid?format=json&status=none')
+        self.assertEquals(response.status_code, 200)
+
+
+#
+# tests.py ends here

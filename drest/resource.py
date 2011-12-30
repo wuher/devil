@@ -55,17 +55,32 @@ def coerce_put_post(request):
 
 
 class Resource(object):
+    """ Base class for resources exposed by an API.
+
+    Derive this class to create a resource. At minimum, (in the
+    derived class) you need to define one method named after the
+    corresponding http method (i.e. post, get, put or delete).
+
+    The response returned by `get()` can be one of the following:
+      - django's HttpResponse
+      - drest's Response
+      - dictionary
+      - plaintext
+
+    Additionally, `HttpStatusCodeError`s are caught and converted to
+    corresponding http responses.
+    """
 
     # configuration parameters
+    # todo: add parameter for default_mapper
 
     access_controller = None
     allow_empty_data = False
     authentication = None
-    presentation = None
+    representation = None
     parameters = None
     formatter = None
-    parser = None
-
+    mapper = None
 
     def __call__(self, request, *args, **kw):
         """ Entry point for HTTP requests. """
@@ -90,51 +105,119 @@ class Resource(object):
         self._authenticate(request)
         self._check_permission(request)
         method = self._get_method(request)
-        data = self._get_input_data(request, *args, **kw)
-        # params = self._get_input_params(request, *args, **kw)
+        data = self._get_input_data(request)
+        self._validate_input_data(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
-        response = self._format_response(request, response, *args, **kw)
+        response = self._format_response(request, response)
+        self._validate_output_data(request, response)
         return response
 
     def _exec_method(self, method, request, data, *args, **kw):
-        """ """
+        """ Execute appropriate request handler. """
         if self._is_data_method(request):
             return method(data, request, *args, **kw)
         else:
             return method(request, *args, **kw)
 
-    def _format_response(self, request, response, *args, **kw):
-        """ """
-        if response is None:
-            res = datamapper.get_empty_response(request, *args, **kw)
-        elif isinstance(response, HttpResponse):
+    def _validate_input_data(self, data, request):
+        """ Validate input data.
+
+        @raise `HttpStatusCodeError` if data is not valid
+        """
+
+        if self._is_data_method(request) and self.representation:
+            form = self.representation(data)
+            if not form.is_valid():
+                self._invalid_input_data(data, form)
+
+    def _validate_output_data(self, request, response):
+        """ Validate the response data.
+
+        @raise `HttpStatusCodeError` if data is not valid
+        """
+
+        if response.status_code is not 200 or \
+            not self.representation or \
+            not response.content:
+            return
+
+        if self.mapper:
+            data = self.mapper.parse(response.content)
+        else:
+            mapper = datamapper.manager.get_mapper_by_content_type(response['Content-Type'])
+            data = mapper.parse(response.content)
+
+        form = self.representation(data)
+        if not form.is_valid():
+            self._invalid_output_data(data, form)
+
+    def _invalid_input_data(self, data, form):
+        """ Always raises HttpStatusCodeError.
+
+        Override to raise different status code when request data
+        doesn't pass validation.
+
+        todo: should format the content using the datamapper
+        """
+
+        raise errors.BadRequest(repr(form.errors))
+
+    def _invalid_output_data(self, data, form):
+        """ Always raises HttpStatusCodeError.
+
+        Override to raise different status code when response data
+        doesn't pass validation.
+        """
+
+        raise errors.InternalServerError()
+
+    def _format_response(self, request, response):
+        """ Format response.
+
+        todo: add support for self.mapper
+
+        @param response resource's response. This can be
+           - `None`,
+           - django's `HttpResponse`
+           - drest's `Response`
+           - dictionary
+           - plaintext
+        """
+
+        mapper = self.mapper if self.mapper else datamapper
+
+        if isinstance(response, HttpResponse):
             res = response
         else:
-            res = datamapper.format(request, response, *args, **kw)
+            res = mapper.format(request, response)
         if res.status_code is 0:
             res.status_code = 200
         return res
 
-    def _get_input_data(self, request, *args, **kw):
-        """ If there is data, parse it, otherwise return None. """
+    def _get_input_data(self, request):
+        """ If there is data, parse it, otherwise return None.
+
+        Parsers always return either a string or a dictionary.
+        """
+
         # only PUT and POST should provide data
         if not self._is_data_method(request):
             return None
 
         if request.raw_post_data:
-            return self._parse_data(request, *args, **kw)
+            return self._parse_data(request)
         elif not self.allow_empty_data:
             raise errors.BadRequest('no data provided')
         else:
             # no data provided, but that's ok
             return None
 
-    def _parse_data(self, request, *args, **kw):
-        """ Execute appropriate parser """
-        if self.parser:
-            return self.parser(request, *args, **kw)
+    def _parse_data(self, request):
+        """ Execute appropriate parser. """
+        if self.mapper:
+            return self.mapper.parse(request)
         else:
-            return datamapper.parse(request, *args, **kw)
+            return datamapper.parse(request)
 
     def _get_error_response(self, exc):
         """ Generate HttpResponse based on the HttpStatusCodeError. """
