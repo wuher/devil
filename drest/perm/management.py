@@ -65,7 +65,6 @@ def _handle_resource_setting(item):
         # todo
         print '###', item
 
-
 def _handle_list(reclist):
     """ Return list of resources that have access_controller defined. """
     ret = []

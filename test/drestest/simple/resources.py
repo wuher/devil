@@ -63,10 +63,10 @@ class MyMapperResource(Resource):
 
     from drest.datamapper import DataMapper
     class ReverseMapper(DataMapper):
-        def _parse_data(self, data):
+        def _parse_data(self, data, charset):
             return data[::-1]
 
-        def _format_data(self, data):
+        def _format_data(self, data, charset):
             return data[::-1] if data is not None else ''
 
     mapper = ReverseMapper()
@@ -106,6 +106,30 @@ class MyTextResource(Resource):
         return 'hello text'
 
 
+class MyScandicResource(Resource):
+    from drest.datamapper import DataMapper
+
+    class AsciiMapper(DataMapper):
+        charset='ascii'
+
+    mapper = AsciiMapper()
+
+    def get(self, request):
+        return 'häätö'
+
+
+class MyScandicJsonResource(Resource):
+    from drest.datamapper import JsonMapper
+
+    class JsonAsciiMapper(JsonMapper):
+        charset='ascii'
+
+    mapper = JsonAsciiMapper()
+
+    def get(self, request):
+        return {'key': 'häätö'}
+
+
 class MyValidationResource(Resource):
     """ Define representation for validtiaon """
 
@@ -125,6 +149,25 @@ class MyValidationResource(Resource):
             return None
         else:
             return {'name': 'Luke Skywalker'}
+
+
+class MyDefaultMapperResourceTxt(Resource):
+    """ Define default mapper. """
+
+    default_mapper = 'json'
+
+    def get(self, request):
+        return {'key': 'löyhkä'}
+
+
+class MyDefaultMapperResourceObj(Resource):
+    """ Define default mapper. """
+    from drest.datamapper import JsonMapper
+
+    default_mapper = JsonMapper()
+
+    def get(self, request):
+        return {'key': 'löyhkä'}
 
 
 #

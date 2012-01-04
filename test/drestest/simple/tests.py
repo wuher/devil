@@ -7,6 +7,7 @@
 
 
 import json, base64
+from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
 from drest import datamapper
@@ -136,8 +137,17 @@ class PermTest(TestCase):
 
         for test in tests:
             client = DrestClient(username=test['user'], password=test['user'])
+            # if test['method'] in ('put', 'post'):
+            #     response = getattr(client, test['method'])(
+            #         '/simple/perm',
+            #         '{"a": 1}',
+            #         'application/json;charset=utf-8')
+            # else:
             response = getattr(client, test['method'])('/simple/perm')
-            self.assertEquals(response.status_code, test['status'])
+            self.assertEquals(
+                response.status_code,
+                test['status'],
+                '%d != %d: %s %s: %s' % (response.status_code, test['status'], test['user'], test['method'], response.content))
 
 
 class AuthTest(TestCase):
@@ -171,7 +181,10 @@ class AuthTest(TestCase):
         for username, password, result in tests:
             client = DrestClient(username=username, password=password)
             response = client.get('/simple/auth/anon')
-            self.assertEquals(response.status_code, result)
+            self.assertEquals(
+                response.status_code,
+                result,
+                '%d != %d: %s/%s' % (response.status_code, result, username, password))
 
 
 class HttpParseTest(TestCase):
@@ -194,7 +207,7 @@ class HttpParseTest(TestCase):
             '/simple/mapper/dict/',
             '',
             'application/json')
-        self.assertEquals(response.status_code, 400)
+        self.assertEquals(response.status_code, 200)
 
     def test_my_mapper(self):
         client = Client()
@@ -216,14 +229,14 @@ class HttpFormatTest(TestCase):
         response = client.get('/simple/mapper/dict/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(response.content, '{"a": 3, "b": 4}')
+        self.assertEquals(json.loads(response.content), {"a": 3, "b": 4})
 
     def test_extension(self):
         client = Client()
         response = client.get('/simple/mapper/dict/hiihoo.json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(response.content, '{"a": 3, "b": 4}')
+        self.assertEquals(json.loads(response.content), {"a": 3, "b": 4})
 
     def test_default(self):
         client = Client()
@@ -251,7 +264,7 @@ class HttpFormatTest(TestCase):
         response = client.get('/simple/mapper/resp/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(response.content, '{"jedi": "luke"}')
+        self.assertEquals(json.loads(response.content), {"jedi": "luke"})
 
     def test_my_mapper(self):
         client = Client()
@@ -259,6 +272,16 @@ class HttpFormatTest(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
         self.assertEquals(response.content, 'reppam ,olleh')
+
+    def test_scandic_ascii(self):
+        client = Client()
+        resp = client.get('/simple/mapper/scandic')
+        self.assertEquals(resp.status_code, 500)
+
+    def test_scandic_ascii_json(self):
+        client = Client()
+        resp = client.get('/simple/mapper/scandic/json')
+        self.assertEquals(resp.status_code, 500)
 
 
 class MapperFormatTest(TestCase):
@@ -268,7 +291,7 @@ class MapperFormatTest(TestCase):
         """ Test that request content-type doesn't affect anything. """
         request = FakeRequest('/hiihoo.json', 'hiihootype')
         response = datamapper.format(request, {'a': 1})
-        self.assertEquals(response.content, '{"a": 1}')
+        self.assertEquals(json.loads(response.content), {'a': 1})
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
 
     def test_unknown_by_extension(self):
@@ -302,7 +325,7 @@ class MapperFormatTest(TestCase):
     def test_my_default_formatter(self):
         class MyDataMapper(datamapper.DataMapper):
             content_type = 'text/jedi'
-            def _format_data(self, data):
+            def _format_data(self, data, charset):
                 return 'this is my data, i have nothing else'
 
         # install my own default mapper
@@ -322,7 +345,7 @@ class MapperFormatTest(TestCase):
     def test_response_to_json(self):
         request = FakeRequest('/', format='json')
         response = datamapper.format(request, http.Response(0, {'a': 1}))
-        self.assertEquals(response.content, '{"a": 1}')
+        self.assertEquals(json.loads(response.content), {"a": 1})
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.status_code, 0)
 
@@ -332,51 +355,123 @@ class MapperParseTest(TestCase):
 
     def test_unknown_by_content_type(self):
         request = FakeRequest('/hiihoo.json', 'hiihoo', 'hiihootype')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, request)
+        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
 
     def test_unknown_by_extension(self):
         request = FakeRequest('/hiihoo.yaml', 'hiihoo')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, request)
+        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
 
     def test_unknown_by_qs(self):
         request = FakeRequest('/hiihoo', 'hiihoo', format='yaml')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, request)
+        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
 
     def test_default_parser(self):
         request = FakeRequest('/hiihoo', '{"a": 1}')
-        self.assertEquals('{"a": 1}', datamapper.parse(request))
+        self.assertEquals('{"a": 1}', datamapper.parse('{"a": 1}', request))
 
     def test_json_by_content_type(self):
         request = FakeRequest('/hiihoo', '{"a": 1}', 'application/json')
-        self.assertEquals({'a': 1}, datamapper.parse(request))
+        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', 'application/json')
-        self.assertEquals({'a': 1}, datamapper.parse(request))
+        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', 'application/json', format='yaml')
-        self.assertEquals({'a': 1}, datamapper.parse(request))
+        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
 
     def test_json_by_qs(self):
         request = FakeRequest('/hiihoo', '{"a": 1}', format='json')
-        self.assertEquals({'a': 1}, datamapper.parse(request))
+        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', format='json')
-        self.assertEquals({'a': 1}, datamapper.parse(request))
+        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
 
     def test_json_by_extension(self):
         request = FakeRequest('/hiihoo.json', '{"a": 3, "b": 4}')
-        self.assertEquals(datamapper.parse(request), {'a': 3, 'b': 4})
+        self.assertEquals(datamapper.parse('{"a": 3, "b": 4}', request), {'a': 3, 'b': 4})
 
     def test_bad_data(self):
         request = FakeRequest('/hiihoo.json', 'hiihoo')
-        self.assertRaises(errors.BadRequest, datamapper.parse, request)
+        self.assertRaises(errors.BadRequest, datamapper.parse, 'hiihoo', request)
 
     def test_no_data(self):
         request = FakeRequest('/hiihoo.json')
         self.assertRaises(TypeError, datamapper.parse, request)
         request = FakeRequest('/hiihoo.json', '')
-        self.assertRaises(errors.BadRequest, datamapper.parse, request)
+        self.assertRaises(errors.BadRequest, datamapper.parse, 'hiihoo', request)
         request = FakeRequest('/hiihoo.json', '{}')
-        self.assertEquals({}, datamapper.parse(request))
+        self.assertEquals({}, datamapper.parse('{}', request))
         request = FakeRequest('/hiihoo.json', '[]')
-        self.assertEquals([], datamapper.parse(request))
+        self.assertEquals([], datamapper.parse('[]', request))
+
+
+class MapperTest(TestCase):
+
+    class MyDataMapper(datamapper.DataMapper):
+        charset = 'iso-8859-1'
+
+    class AsciiMapper(datamapper.DataMapper):
+        charset = 'ascii'
+
+    class AsciiJsonMapper(datamapper.JsonMapper):
+        charset = 'ascii'
+
+    def test_format_my_mapper(self):
+        m = self.MyDataMapper()
+        resp = m.format('hello')
+        self.assertTrue(isinstance(resp, HttpResponse))
+        self.assertEquals(resp.status_code, 0)
+        self.assertEquals(resp['Content-Type'], 'text/plain; charset=iso-8859-1')
+        self.assertEquals(resp.content, 'hello')
+
+    def test_format_none(self):
+        m = datamapper.DataMapper()
+        resp = m.format(None)
+        self.assertEquals(resp.content, '')
+        self.assertTrue(isinstance (resp.content, str))
+
+    def test_format_scandic_uni(self):
+        m = datamapper.DataMapper()
+        # give unicode to mapper
+        resp = m.format(u'lähtö')
+        self.assertEquals(resp.content, 'lähtö')
+        self.assertTrue(isinstance (resp.content, str))
+
+    def test_format_scandic_str(self):
+        m = datamapper.DataMapper()
+        # give str to mapper
+        resp = m.format('lähtö')
+        self.assertEquals(resp.content, 'lähtö')
+        self.assertTrue(isinstance (resp.content, str))
+
+    def test_ascii_mapper_scandic(self):
+        m = self.AsciiMapper()
+        self.assertRaises(UnicodeEncodeError, m.format, u'lähtö')
+        self.assertRaises(errors.BadRequest, m.parse, 'lähtö')
+
+    def test_parse_scandic(self):
+        m = datamapper.DataMapper()
+        result = m.parse('lähtö')
+        self.assertEquals(result, u'lähtö')
+        self.assertTrue(isinstance (result, unicode))
+
+    def test_parse_scandic_json(self):
+        m = datamapper.JsonMapper()
+        result = m.parse('{"key": "lähtö"}', 'utf-8')
+        self.assertTrue(isinstance (result['key'], unicode))
+
+    def test_format_scandic_json(self):
+        m = datamapper.JsonMapper()
+        data = {'key': 'lähtö'}
+        resp = m.format(data)
+        self.assertEquals(resp['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(resp.content, '{\n    "key": "lähtö"\n}')
+
+    def test_format_scandic_ascii_json(self):
+        m = self.AsciiJsonMapper()
+        data = {'key': 'lähtö'}
+        self.assertRaises(UnicodeDecodeError, m.format, data)
+        data = {u'key': u'lähtö'}
+        resp = m.format(data)
+        self.assertEquals(resp['Content-Type'], 'application/json; charset=ascii')
+        self.assertEquals(resp.content, '{\n    "key": "lähtö"\n}')
 
 
 class ValidationTest(TestCase):
@@ -413,6 +508,21 @@ class ValidationTest(TestCase):
         client = Client()
         response = client.get('/simple/valid?format=json&status=none')
         self.assertEquals(response.status_code, 200)
+
+
+class DefaultMapperTest(TestCase):
+
+    def test_default_txt(self):
+        client = Client()
+        response = client.get('/simple/mapper/default/txt')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, '{\n    "key": "löyhkä"\n}')
+
+    def test_default_obj(self):
+        client = Client()
+        response = client.get('/simple/mapper/default/obj')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, '{\n    "key": "löyhkä"\n}')
 
 
 #

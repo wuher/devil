@@ -19,7 +19,11 @@ anonresource = resources.MyAnonResource()
 permresource = resources.MyPermResource()
 noneresource = resources.MyNoneResource()
 mapperresource = resources.MyMapperResource()
+scandicresource = resources.MyScandicResource()
 validationresource = resources.MyValidationResource()
+scandicjsonresource = resources.MyScandicJsonResource()
+defaulttxtmapperresource = resources.MyDefaultMapperResourceTxt()
+defaultobjmapperresource = resources.MyDefaultMapperResourceObj()
 
 acl_resources = (
     dictresource,
@@ -33,14 +37,18 @@ acl_resources = (
 
 urlpatterns = patterns('',
     url(r'^perm', permresource),
+    url(r'^auth$', authresource),
     url(r'^auth/anon', anonresource),
-    url(r'^auth', authresource),
     url(r'^valid', validationresource),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),
     url(r'^mapper/none', noneresource),
     url(r'^mapper/reverse', mapperresource),
+    url(r'^mapper/scandic$', scandicresource),
+    url(r'^mapper/scandic/json', scandicjsonresource),
+    url(r'^mapper/default/txt$', defaulttxtmapperresource),
+    url(r'^mapper/default/obj$', defaultobjmapperresource),
 )
 
 

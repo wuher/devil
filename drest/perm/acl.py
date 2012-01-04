@@ -22,6 +22,7 @@ class PermissionController(object):
         This is used for auto-generating missing permissions rows into
         database in syncdb.
         """
+
         return [cls.get_perm_name(resource, method) for method in cls.METHODS]
 
     @classmethod

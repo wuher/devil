@@ -8,7 +8,8 @@
 
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
-import errors, datamapper
+from django.conf import settings
+import errors, datamapper, util
 from http import codes
 
 
@@ -72,12 +73,11 @@ class Resource(object):
     """
 
     # configuration parameters
-    # todo: add parameter for default_mapper
 
     access_controller = None
-    allow_empty_data = False
     authentication = None
     representation = None
+    default_mapper = None
     mapper = None
 
     def __call__(self, request, *args, **kw):
@@ -85,21 +85,31 @@ class Resource(object):
 
         coerce_put_post(request) #django-fix
         try:
-            return self._handle_request(request, *args, **kw)
+            return self.__handle_request(request, *args, **kw)
         except errors.HttpStatusCodeError, e:
             return self._get_error_response(e)
+        except:
+            return self._get_unknown_error_response()
 
     def name(self):
         """ Return resource's name.
 
         This is used mainly by the permission module to determine the
         name of a permission.
+
+        By default, return the name of the class. Override to return
+        something else.
         """
 
         return self.__class__.__name__
 
-    def _handle_request(self, request, *args, **kw):
-        """  """
+    def __handle_request(self, request, *args, **kw):
+        """ Intercept the request and response.
+
+        This function lets `HttpStatusCodeError`s fall through. They
+        are caught and transformed into HTTP responses by the caller.
+        """
+
         self._authenticate(request)
         self._check_permission(request)
         method = self._get_method(request)
@@ -116,6 +126,49 @@ class Resource(object):
             return method(data, request, *args, **kw)
         else:
             return method(request, *args, **kw)
+
+    def _format_response(self, request, response):
+        """ Format response.
+
+        If the response is `HttpResponse`, does nothing. Otherwise,
+        formats the response using appropriate mapper.
+
+        @param response resource's response. This can be
+           - `None`,
+           - django's `HttpResponse`
+           - drest's `Response`
+           - dictionary
+           - plaintext
+        """
+
+        if isinstance(response, HttpResponse):
+            res = response
+        elif self.mapper:
+            res = self.mapper.format(response)
+        else:
+            res = datamapper.format(request, response, self.default_mapper)
+        # data is now formatted, let's check if the status_code is set
+        if res.status_code is 0:
+            res.status_code = 200
+        return res
+
+    def _get_input_data(self, request):
+        """ If there is data, parse it, otherwise return None. """
+
+        # only PUT and POST should provide data
+        if not self._is_data_method(request):
+            return None
+
+        content = [row for row in request.read()]
+        content = ''.join(content) if content else None
+        return self._parse_input_data(content, request) if content else None
+
+    def _parse_input_data(self, data, request):
+        """ Execute appropriate parser. """
+        if self.mapper:
+            return self.mapper.parse(data, util.get_charset(request))
+        else:
+            return datamapper.parse(data, request, self.default_mapper)
 
     def _validate_input_data(self, data, request):
         """ Validate input data.
@@ -139,11 +192,12 @@ class Resource(object):
             not response.content:
             return
 
+        charset = util.extract_charset(response['Content-Type'])
         if self.mapper:
-            data = self.mapper.parse(response.content)
+            data = self.mapper.parse(response.content, charset)
         else:
             mapper = datamapper.manager.get_mapper_by_content_type(response['Content-Type'])
-            data = mapper.parse(response.content)
+            data = mapper.parse(response.content, charset)
 
         form = self.representation(data)
         if not form.is_valid():
@@ -169,60 +223,24 @@ class Resource(object):
 
         raise errors.InternalServerError()
 
-    def _format_response(self, request, response):
-        """ Format response.
+    def _get_unknown_error_response(self):
+        """ Generate HttpResponse for unknown exceptions.
 
-        todo: add support for self.mapper
-
-        @param response resource's response. This can be
-           - `None`,
-           - django's `HttpResponse`
-           - drest's `Response`
-           - dictionary
-           - plaintext
+        todo: this should be more informative..
         """
 
-        mapper = self.mapper if self.mapper else datamapper
-
-        if isinstance(response, HttpResponse):
-            res = response
+        if settings.DEBUG:
+            raise
         else:
-            res = mapper.format(request, response)
-        if res.status_code is 0:
-            res.status_code = 200
-        return res
-
-    def _get_input_data(self, request):
-        """ If there is data, parse it, otherwise return None.
-
-        Parsers always return either a string or a dictionary.
-        """
-
-        # only PUT and POST should provide data
-        if not self._is_data_method(request):
-            return None
-
-        if request.raw_post_data:
-            return self._parse_data(request)
-        elif not self.allow_empty_data:
-            raise errors.BadRequest('no data provided')
-        else:
-            # no data provided, but that's ok
-            return None
-
-    def _parse_data(self, request):
-        """ Execute appropriate parser. """
-        if self.mapper:
-            return self.mapper.parse(request)
-        else:
-            return datamapper.parse(request)
+            return HttpResponse(status=codes.INTERNAL_SERVER_ERROR[1])
 
     def _get_error_response(self, exc):
         """ Generate HttpResponse based on the HttpStatusCodeError. """
         if exc.has_code(codes.UNAUTHORIZED):
             return self._get_auth_challenge(exc)
         else:
-            return HttpResponse(content=exc.content, status=exc.get_code_num())
+            content = exc.content or ''
+            return HttpResponse(content=content, status=exc.get_code_num())
 
     def _get_auth_challenge(self, exc):
         """ Returns HttpResponse for the client. """
