@@ -101,7 +101,7 @@ class Resource(object):
         something else.
         """
 
-        return self.__class__.__name__
+        return self.__class__.__name__.lower()
 
     def __handle_request(self, request, *args, **kw):
         """ Intercept the request and response.
@@ -228,6 +228,9 @@ class Resource(object):
 
         todo: this should be more informative..
         """
+
+        # import traceback
+        # traceback.print_exc()
 
         if settings.DEBUG:
             raise
