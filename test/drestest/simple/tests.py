@@ -349,6 +349,16 @@ class MapperFormatTest(TestCase):
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.status_code, 0)
 
+    def test_no_data(self):
+        request = FakeRequest('/hiihoo.json')
+        self.assertEquals((datamapper.format(request, None)).content, '')
+        request = FakeRequest('/hiihoo.json', '')
+        self.assertEquals((datamapper.format(request, '')).content, '')
+        request = FakeRequest('/hiihoo.json', '{}')
+        self.assertEquals('{}', (datamapper.format(request, {})).content)
+        request = FakeRequest('/hiihoo.json', '[]')
+        self.assertEquals('[]', (datamapper.format(request, [])).content)
+
 
 class MapperParseTest(TestCase):
     """ Test parsing directly """

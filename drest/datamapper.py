@@ -110,11 +110,11 @@ class JsonMapper(DataMapper):
     content_type = 'application/json'
 
     def _format_data(self, data, charset):
-        if data:
+        if data is None or data == '':
+            return u''
+        else:
             return json.dumps(
                 data, indent=4, ensure_ascii=False, encoding=charset)
-        else:
-            return u''
 
     def _parse_data(self, data, charset):
         try:
