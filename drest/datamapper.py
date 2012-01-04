@@ -17,7 +17,7 @@ import util
 class DataMapper(object):
     """ Base class for all data mappers.
 
-    This class just
+
     """
 
     content_type = 'text/plain'
