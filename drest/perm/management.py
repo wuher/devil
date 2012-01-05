@@ -97,6 +97,8 @@ def _get_permission_description(permission_name):
     """ Generate a descriptive string based on the permission name.
 
     For example: 'resource_Order_get'  ->  'Can GET order'
+
+    todo: add support for the resource name to have underscores
     """
 
     _, resource, method = permission_name.split('_')
