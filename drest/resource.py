@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import errors, datamapper, util
 from http import codes
-
+import logger
 
 # todo: move and make configurable
 REALM = "test"
@@ -79,6 +79,17 @@ class Resource(object):
     representation = None
     default_mapper = None
     mapper = None
+    log = None
+
+
+    def __init__(self):
+        if not self.log and settings.DEBUG:
+            import logging
+            log = logging.getLogger()
+            log.addHandler(logging.StreamHandler())
+            log.setLevel(logging.DEBUG)
+            self.log = log
+
 
     def __call__(self, request, *args, **kw):
         """ Entry point for HTTP requests. """
@@ -86,10 +97,10 @@ class Resource(object):
         coerce_put_post(request) #django-fix
         try:
             return self.__handle_request(request, *args, **kw)
-        except errors.HttpStatusCodeError, e:
-            return self._get_error_response(e)
-        except:
-            return self._get_unknown_error_response()
+        except errors.HttpStatusCodeError, exc:
+            return self._get_error_response(exc)
+        except Exception, exc:
+            return self._get_unknown_error_response(exc)
 
     def name(self):
         """ Return resource's name.
@@ -223,14 +234,14 @@ class Resource(object):
 
         raise errors.InternalServerError()
 
-    def _get_unknown_error_response(self):
+    def _get_unknown_error_response(self, exc):
         """ Generate HttpResponse for unknown exceptions.
 
         todo: this should be more informative..
         """
 
-        # import traceback
-        # traceback.print_exc()
+        if self.log:
+            self.log.error('drest caught: ' + str(exc), exc_info=True)
 
         if settings.DEBUG:
             raise
