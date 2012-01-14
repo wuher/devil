@@ -1,12 +1,12 @@
 **THIS IS A WORK IN PROGRESS**
 
-* Simple REST frameword for Django
+# Simple REST frameword for Django
 
 dRest aims to be simple to use REST framework for Django. dRest is
 influenced by [piston][1].
 
 
-** Key Characteristics
+## Key Characteristics
 
   - `Resource` is the key concept, everything builds around it.
   - Automatic content negotiation (parsers / formatters).
@@ -31,7 +31,7 @@ influenced by [piston][1].
     - Automatic documentation generation
 
 
-** Example
+## Example
 
 myresources.py:
 
@@ -55,7 +55,7 @@ urls.py:
     )
 
 
-** License
+## License
 
 
 (The MIT License)
