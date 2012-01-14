@@ -20,6 +20,9 @@ Key Characteristics
     permissions.
     - Ability to assign CRUD operations per resource for
       each user (or group)
+    - dRest will auto-generate necessary permissions into the DB
+    - You can use Django's admin interface to assign permissions to users and groups
+    - After this dRest automatically picks up `request.user` and performs authorization
   - Intentionally doesn't give you CRUD for free as piston does
     - We can add this option later if it's concidered useful, but:
     - This rarely works for legacy systems anyway
