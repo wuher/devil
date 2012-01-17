@@ -6,12 +6,13 @@
 #
 
 
+import types
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.conf import settings
 import errors, datamapper, util
 from http import codes
-import logger
+import logging
 
 # todo: move and make configurable
 REALM = "test"
@@ -79,16 +80,6 @@ class Resource(object):
     representation = None
     default_mapper = None
     mapper = None
-    log = None
-
-
-    def __init__(self):
-        if not self.log and settings.DEBUG:
-            import logging
-            log = logging.getLogger()
-            log.addHandler(logging.StreamHandler())
-            log.setLevel(logging.DEBUG)
-            self.log = log
 
 
     def __call__(self, request, *args, **kw):
@@ -210,9 +201,17 @@ class Resource(object):
             mapper = datamapper.manager.get_mapper_by_content_type(response['Content-Type'])
             data = mapper.parse(response.content, charset)
 
-        form = self.representation(data)
-        if not form.is_valid():
-            self._invalid_output_data(data, form)
+        def do_validation(item):
+            form = self.representation(item)
+            if not form.is_valid():
+                self._invalid_output_data(data, form)
+
+
+        if type(data) == types.ListType:
+            for item in data:
+                do_validation(item)
+        else:
+            do_validation(data)
 
     def _invalid_input_data(self, data, form):
         """ Always raises HttpStatusCodeError.
@@ -240,8 +239,7 @@ class Resource(object):
         todo: this should be more informative..
         """
 
-        if self.log:
-            self.log.error('drest caught: ' + str(exc), exc_info=True)
+        logging.getLogger('drest').error('drest caught: ' + str(exc), exc_info=False)
 
         if settings.DEBUG:
             raise

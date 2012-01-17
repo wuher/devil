@@ -145,6 +145,14 @@ class MyValidationResource(Resource):
         status = request.GET.get('status', None)
         if status == 'good':
             return {'name': 'Luke'}
+        elif status == 'goodlist':
+            return [
+                {'name': 'Luke'},
+                ]
+        elif status == 'badlist':
+            return [
+                {'name': 'Luke Skywalker'},
+                ]
         elif status == 'none':
             return None
         else:

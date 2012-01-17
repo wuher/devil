@@ -6,7 +6,7 @@
 #
 
 
-import json, base64
+import json, base64, logging
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
@@ -14,6 +14,11 @@ from drest import datamapper
 from drest import errors, http
 from drest.perm import management as syncdb
 import urls as testurls
+
+
+# mute the log (enable when debugging)
+log = logging.getLogger('drest')
+log.setLevel(logging.FATAL)
 
 
 class FakeRequest(object):
@@ -496,6 +501,16 @@ class ValidationTest(TestCase):
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.content, '')
 
+    def test_parse_validation_pass_extra(self):
+        client = Client()
+        response = client.put(
+            '/simple/valid?format=json',
+            '{"name": "Luke", "extra": "data"}',
+            'application/json')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(response.content, '')
+
     def test_parse_validation_fail(self):
         client = Client()
         response = client.put(
@@ -508,6 +523,16 @@ class ValidationTest(TestCase):
         client = Client()
         response = client.get('/simple/valid?format=json&status=good')
         self.assertEquals(response.status_code, 200)
+
+    def test_format_validation_list_pass(self):
+        client = Client()
+        response = client.get('/simple/valid?format=json&status=goodlist')
+        self.assertEquals(response.status_code, 200)
+
+    def test_format_validation_list_fail(self):
+        client = Client()
+        response = client.get('/simple/valid?format=json&status=badlist')
+        self.assertEquals(response.status_code, 500)
 
     def test_format_validation_fail1(self):
         client = Client()

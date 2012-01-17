@@ -6,8 +6,18 @@
 #
 
 
+import logging, sys
 import datamapper
 
+
+def init_logging():
+    log = logging.getLogger('drest')
+    if log.level == logging.NOTSET:
+        log.setLevel(logging.WARN)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s %(name)s %(message)s'))
+        log.addHandler(handler)
 
 def register_mappers():
     jsonmapper = datamapper.JsonMapper()
@@ -25,6 +35,7 @@ def register_mappers():
     datamapper.manager.register_mapper(jsonmapper, 'text/x-javascript', 'json')
     datamapper.manager.register_mapper(jsonmapper, 'text/x-json', 'json')
 
+init_logging()
 register_mappers()
 
 #
