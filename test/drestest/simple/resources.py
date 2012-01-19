@@ -6,6 +6,8 @@
 #
 
 
+from decimal import Decimal
+
 from django import forms
 
 from drest.resource import Resource
@@ -90,7 +92,19 @@ class MyDictResource(Resource):
         self.mydata = data
 
     def get(self, request, *args, **kw):
-        return {'a': 3, 'b': 4}
+        return {'a': 3.99, 'b': Decimal('3.99')}
+
+
+class MyDecimalResource(Resource):
+    """
+    Return and accept decimal numbers.
+    """
+
+    def put(self, data, request, *args, **kw):
+        self.mydata = data
+
+    def get(self, request, *args, **kw):
+        return {'a': 3.99, 'b': Decimal('3.99')}
 
 
 class MyNoneResource(Resource):

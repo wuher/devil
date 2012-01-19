@@ -6,7 +6,8 @@
 #
 
 
-import re, json
+import re
+import simplejson as json
 from django.utils.encoding import smart_unicode, smart_str
 from django.http import HttpResponse
 import errors
@@ -119,6 +120,25 @@ class JsonMapper(DataMapper):
     def _parse_data(self, data, charset):
         try:
             return json.loads(data, charset)
+        except ValueError:
+            raise errors.BadRequest('unable to parse data')
+
+
+class JsonDecimalMapper(DataMapper):
+    """ Json mapper that uses Decimals instead of floats """
+
+    content_type = 'application/json'
+
+    def _format_data(self, data, charset):
+        if data is None or data == '':
+            return u''
+        else:
+            return json.dumps(
+                data, indent=4, ensure_ascii=False, encoding=charset, use_decimal=True)
+
+    def _parse_data(self, data, charset):
+        try:
+            return json.loads(data, charset, use_decimal=True)
         except ValueError:
             raise errors.BadRequest('unable to parse data')
 

@@ -7,6 +7,7 @@
 
 
 import json, base64, logging
+from decimal import Decimal
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
@@ -199,12 +200,12 @@ class HttpParseTest(TestCase):
         client = Client()
         response = client.put(
             '/simple/mapper/dict/',
-            '{"a": 1}',
+            '{"a": 1.99}',
             'application/json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
         self.assertEquals(response.content, '')
-        self.assertEquals(testurls.dictresource.mydata, {'a': 1})
+        self.assertEquals(testurls.dictresource.mydata, {'a': 1.99})
 
     def test_post_empty_data(self):
         client = Client()
@@ -234,14 +235,14 @@ class HttpFormatTest(TestCase):
         response = client.get('/simple/mapper/dict/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"a": 3, "b": 4})
+        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
 
     def test_extension(self):
         client = Client()
         response = client.get('/simple/mapper/dict/hiihoo.json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"a": 3, "b": 4})
+        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
 
     def test_default(self):
         client = Client()
@@ -287,6 +288,36 @@ class HttpFormatTest(TestCase):
         client = Client()
         resp = client.get('/simple/mapper/scandic/json')
         self.assertEquals(resp.status_code, 500)
+
+
+class JsonDecimalMapperTests(TestCase):
+    """ Test the JsonDecimalMapper """
+
+    def setUp(self):
+        from drest.datamapper import JsonMapper, JsonDecimalMapper, manager
+        manager.register_mapper(JsonDecimalMapper(), 'application/json', 'json')
+
+    def tearDown(self):
+        from drest.datamapper import JsonMapper, JsonDecimalMapper, manager
+        manager.register_mapper(JsonMapper(), 'application/json', 'json')
+
+    def test_parse(self):
+        client = Client()
+        resp = client.get('/simple/mapper/decimal?format=json')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, '{\n    "a": 3.99,\n    "b": 3.99\n}')
+
+    def test_format(self):
+        client = Client()
+        resp = client.put(
+            '/simple/mapper/decimal',
+            '{"a": 3.99, "b": 3.99}',
+            'application/json')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(testurls.decimalresource.mydata, {
+            'a': Decimal('3.99'),
+            'b': Decimal('3.99'),
+            })
 
 
 class MapperFormatTest(TestCase):

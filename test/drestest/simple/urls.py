@@ -19,6 +19,7 @@ anonresource = resources.MyAnonResource()
 permresource = resources.MyPermResource()
 noneresource = resources.MyNoneResource()
 mapperresource = resources.MyMapperResource()
+decimalresource = resources.MyDecimalResource()
 scandicresource = resources.MyScandicResource()
 validationresource = resources.MyValidationResource()
 scandicjsonresource = resources.MyScandicJsonResource()
@@ -45,6 +46,7 @@ urlpatterns = patterns('',
     url(r'^mapper/resp', respresource),
     url(r'^mapper/none', noneresource),
     url(r'^mapper/reverse', mapperresource),
+    url(r'^mapper/decimal', decimalresource),
     url(r'^mapper/scandic$', scandicresource),
     url(r'^mapper/scandic/json', scandicjsonresource),
     url(r'^mapper/default/txt$', defaulttxtmapperresource),
