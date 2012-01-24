@@ -76,6 +76,7 @@ class Resource(object):
     # configuration parameters
 
     access_controller = None
+    allow_anonymous = True
     authentication = None
     representation = None
     default_mapper = None
@@ -272,15 +273,6 @@ class Resource(object):
         """ Return True, if request method is either PUT or POST """
         return request.method.upper() in ('PUT', 'POST')
 
-    def _allow_anonymous(self, request):
-        """ Do we grant anonymous access.
-
-        @return True, if anonymous access is granted, False if not
-
-        todo: maybe we could ask this from the access_controller?
-        """
-        return True
-
     def _authenticate(self, request):
         """ Perform authentication. """
 
@@ -312,7 +304,7 @@ class Resource(object):
             if request.user and request.user.is_authenticated():
                 # request is already authenticated
                 pass
-            elif self._allow_anonymous(request):
+            elif self.allow_anonymous:
                 request.user = AnonymousUser()
             else:
                 raise exc_obj
