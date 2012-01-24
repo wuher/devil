@@ -10,6 +10,7 @@ import base64
 from django.contrib.auth import authenticate
 from errors import Unauthorized, Forbidden
 
+
 class HttpBasic(object):
     def authenticate(self, request):
         """ Authenticate request using HTTP Basic authentication protocl.
