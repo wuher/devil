@@ -101,7 +101,10 @@ def _get_permission_description(permission_name):
     todo: add support for the resource name to have underscores
     """
 
-    _, resource, method = permission_name.split('_')
+    parts = permission_name.split('_')
+    parts.pop(0)
+    method = parts.pop()
+    resource = ('_'.join(parts)).lower()
     return 'Can %s %s' % (method.upper(), resource)
 
 def _populate_permissions(resources, content_type_id):

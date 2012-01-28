@@ -88,10 +88,10 @@ class PermSyncDbTest(TestCase):
         self.assertEquals(len(perms), 4)
 
         expected = (
-            {'content_type_id': 1, 'codename': 'resource_mypermresource_post'},
-            {'content_type_id': 1, 'codename': 'resource_mypermresource_get'},
-            {'content_type_id': 1, 'codename': 'resource_mypermresource_put'},
-            {'content_type_id': 1, 'codename': 'resource_mypermresource_delete'},
+            {'content_type_id': 1, 'codename': 'resource_my/perm/resource_post'},
+            {'content_type_id': 1, 'codename': 'resource_my/perm/resource_get'},
+            {'content_type_id': 1, 'codename': 'resource_my/perm/resource_put'},
+            {'content_type_id': 1, 'codename': 'resource_my/perm/resource_delete'},
         )
 
         for exp in expected:

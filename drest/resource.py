@@ -104,7 +104,7 @@ class Resource(object):
         something else.
         """
 
-        return self.__class__.__name__.lower()
+        return util.camelcase_to_slash(self.__class__.__name__)
 
     def __handle_request(self, request, *args, **kw):
         """ Intercept the request and response.
@@ -206,7 +206,6 @@ class Resource(object):
             form = self.representation(item)
             if not form.is_valid():
                 self._invalid_output_data(data, form)
-
 
         if type(data) == types.ListType:
             for item in data:

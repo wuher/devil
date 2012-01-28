@@ -37,9 +37,7 @@ class MyAuthResource(Resource):
     """ HTTP Basic authentication """
 
     authentication = HttpBasic()
-
-    def _allow_anonymous(self, request):
-        return False
+    allow_anonymous = False
 
     def get(self, request, *args, **kw):
         return 'Hello, Auth!'
