@@ -22,9 +22,13 @@ def init_logging():
 def register_mappers():
     jsonmapper = datamapper.JsonMapper()
     textmapper = datamapper.DataMapper()
+    xmlmapper = datamapper.XmlMapper()
 
     # text mapper
     datamapper.manager.register_mapper(textmapper, 'text/plain', 'text')
+
+    # xml mapper
+    datamapper.manager.register_mapper(xmlmapper, 'text/xml', 'xml')
 
     # json mapper
     datamapper.manager.register_mapper(jsonmapper, 'application/json', 'json')

@@ -80,8 +80,7 @@ class MyMapperResource(Resource):
 
 
 class MyDictResource(Resource):
-    """
-    Return and accept dictionaries.
+    """ Return and accept dictionaries.
 
     curl http://localhost:8000/simple/mapper/dict/?format=json -d '{"a": 1}' -X PUT --header "Content-Type: application/json"
     """
@@ -91,6 +90,18 @@ class MyDictResource(Resource):
 
     def get(self, request, *args, **kw):
         return {'a': 3.99, 'b': Decimal('3.99')}
+
+
+class MyEchoResource(Resource):
+    """ Returns the same data with GET that was received with PUT. """
+
+    mydata = None
+
+    def put(self, data, request, *args, **kw):
+        self.mydata = data
+
+    def get(self, request, *args, **kw):
+        return self.mydata
 
 
 class MyDecimalResource(Resource):

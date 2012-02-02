@@ -18,6 +18,7 @@ authresource = resources.MyAuthResource()
 anonresource = resources.MyAnonResource()
 permresource = resources.MyPermResource()
 noneresource = resources.MyNoneResource()
+echoresource = resources.MyEchoResource()
 mapperresource = resources.MyMapperResource()
 decimalresource = resources.MyDecimalResource()
 scandicresource = resources.MyScandicResource()
@@ -45,6 +46,7 @@ urlpatterns = patterns('',
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),
     url(r'^mapper/none', noneresource),
+    url(r'^mapper/echo', echoresource),
     url(r'^mapper/reverse', mapperresource),
     url(r'^mapper/decimal', decimalresource),
     url(r'^mapper/scandic$', scandicresource),

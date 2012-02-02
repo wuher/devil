@@ -53,5 +53,57 @@ def get_charset(request):
         return None
 
 
+def parse_accept_header(accept):
+    """ Parse the Accept header
+
+    todo: memoize
+
+    :returns: list with pairs of (media_type, q_value), ordered by q
+    values.
+    """
+
+    def parse_media_range(accept_item):
+        """ Parse media range and subtype """
+
+        return accept_item.split('/', 1)
+
+    def comparator(a, b):
+        """ Compare accept items a and b """
+
+        # first compare q values
+        result = -cmp(a[2], b[2])
+        if result is not 0:
+            # q values differ, no need to compare media types
+            return result
+
+        # parse media types and compare them (asterisks are lower in precedence)
+        mtype_a, subtype_a = parse_media_range(a[0])
+        mtype_b, subtype_b = parse_media_range(b[0])
+        if mtype_a == '*' and subtype_a == '*':
+            return 1
+        if mtype_b == '*' and subtype_b == '*':
+            return -1
+        if subtype_a == '*':
+            return 1
+        if subtype_b == '*':
+            return -1
+        return 0
+
+    result = []
+    for media_range in accept.split(","):
+        parts = media_range.split(";")
+        media_type = parts.pop(0).strip()
+        media_params = []
+        q = 1.0
+        for part in parts:
+            (key, value) = part.lstrip().split("=", 1)
+            if key == "q":
+                q = float(value)
+            else:
+                media_params.append((key, value))
+        result.append((media_type, tuple(media_params), q))
+    result.sort(comparator)
+    return result
+
 #
 # util.py ends here

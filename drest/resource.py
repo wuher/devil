@@ -15,7 +15,7 @@ from http import codes
 import logging
 
 # todo: move and make configurable
-REALM = "test"
+REALM = "drest"
 
 
 # todo: move somewhere and add note about borrowing this from piston
@@ -326,6 +326,7 @@ class Resource(object):
 
         @raise Forbidden if user doesn't have access to the resource.
         """
+
         if self.access_controller:
             self.access_controller.check_perm(request, self)
 
