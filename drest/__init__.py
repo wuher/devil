@@ -20,8 +20,8 @@ def init_logging():
         log.addHandler(handler)
 
 def register_mappers():
-    jsonmapper = datamapper.JsonMapper()
     textmapper = datamapper.DataMapper()
+    jsonmapper = datamapper.JsonMapper()
     xmlmapper = XmlMapper(numbermode='basic')
 
     # text mapper

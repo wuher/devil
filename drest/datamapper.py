@@ -111,37 +111,43 @@ class DataMapper(object):
 class JsonMapper(DataMapper):
     content_type = 'application/json'
 
-    def _format_data(self, data, charset):
-        if data is None or data == '':
-            return u''
-        else:
-            return json.dumps(
-                data, indent=4, ensure_ascii=False, encoding=charset)
+    def __init__(self, use_decimal=False):
+        """ Initialize JSON mapper with appropriate use of numbers.
 
-    def _parse_data(self, data, charset):
-        try:
-            return json.loads(data, charset)
-        except ValueError:
-            raise errors.BadRequest('unable to parse data')
+        :param use_decimal: ``True`` if numbers should be converted into ``Decimal``s
+        """
 
-
-class JsonDecimalMapper(DataMapper):
-    """ Json mapper that uses Decimals instead of floats """
-
-    content_type = 'application/json'
+        self.use_decimal = use_decimal
 
     def _format_data(self, data, charset):
         if data is None or data == '':
             return u''
         else:
-            return json.dumps(
-                data, indent=4, ensure_ascii=False, encoding=charset, use_decimal=True)
+            params = {
+                'indent': 4,
+                'ensure_ascii': False,
+                'encoding': charset,
+                }
+            self._maybe_add_use_decimal(params)
+            return json.dumps(data, **params)
 
     def _parse_data(self, data, charset):
+        params = {}
+        self._maybe_add_use_decimal(params)
         try:
-            return json.loads(data, charset, use_decimal=True)
+            return json.loads(data, charset, **params)
         except ValueError:
             raise errors.BadRequest('unable to parse data')
+
+    def _maybe_add_use_decimal(self, params):
+        """ Maybe add ``use_decimal`` to the given parameters
+
+        obviously, it's different to say use_decimal=False than
+        it is to leave it out completely
+        """
+
+        if self.use_decimal:
+            params['use_decimal'] = True
 
 
 class DataMapperManager(object):

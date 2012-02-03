@@ -236,21 +236,21 @@ class HttpFormatTest(TestCase):
         response = client.get('/simple/mapper/dict/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
+        self.assertEquals(json.loads(response.content), {'a': 3.99, 'b': 3.99})
 
     def test_extension(self):
         client = Client()
         response = client.get('/simple/mapper/dict/hiihoo.json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
+        self.assertEquals(json.loads(response.content), {'a': 3.99, 'b': 3.99})
 
     def test_accept_header(self):
         client = Client()
         response = client.get('/simple/mapper/dict/', **{'HTTP_ACCEPT': 'application/json'})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
+        self.assertEquals(json.loads(response.content), {'a': 3.99, 'b': 3.99})
 
     def test_default(self):
         client = Client()
@@ -278,7 +278,7 @@ class HttpFormatTest(TestCase):
         response = client.get('/simple/mapper/resp/?format=json')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(json.loads(response.content), {"jedi": "luke"})
+        self.assertEquals(json.loads(response.content), {'jedi': 'luke'})
 
     def test_my_mapper(self):
         client = Client()
@@ -299,14 +299,14 @@ class HttpFormatTest(TestCase):
 
 
 class JsonDecimalMapperTests(TestCase):
-    """ Test the JsonDecimalMapper """
+    """ Test the JsonMapper with decimals """
 
     def setUp(self):
-        from drest.datamapper import JsonMapper, JsonDecimalMapper, manager
-        manager.register_mapper(JsonDecimalMapper(), 'application/json', 'json')
+        from drest.datamapper import JsonMapper, manager
+        manager.register_mapper(JsonMapper(use_decimal=True), 'application/json', 'json')
 
     def tearDown(self):
-        from drest.datamapper import JsonMapper, JsonDecimalMapper, manager
+        from drest.datamapper import JsonMapper, manager
         manager.register_mapper(JsonMapper(), 'application/json', 'json')
 
     def test_parse(self):
@@ -389,7 +389,7 @@ class MapperFormatTest(TestCase):
     def test_response_to_json(self):
         request = FakeRequest('/', format='json')
         response = datamapper.format(request, http.Response(0, {'a': 1}))
-        self.assertEquals(json.loads(response.content), {"a": 1})
+        self.assertEquals(json.loads(response.content), {'a': 1})
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.status_code, 0)
 
