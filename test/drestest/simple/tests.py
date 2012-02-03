@@ -14,6 +14,7 @@ from django.test.client import Client
 from drest import datamapper
 from drest import errors, http
 from drest.perm import management as syncdb
+from drest.mappers.xmlmapper import XmlMapper
 import urls as testurls
 
 
@@ -240,6 +241,13 @@ class HttpFormatTest(TestCase):
     def test_extension(self):
         client = Client()
         response = client.get('/simple/mapper/dict/hiihoo.json')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
+
+    def test_accept_header(self):
+        client = Client()
+        response = client.get('/simple/mapper/dict/', **{'HTTP_ACCEPT': 'application/json'})
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(json.loads(response.content), {"a": 3.99, "b": 3.99})
@@ -594,12 +602,81 @@ class DefaultMapperTest(TestCase):
 class XmlMapperTest(TestCase):
 
     def test_simple_get_put(self):
+        """ basic test that the mapping is symmetric """
+
         client = Client()
         originaldata = {'a': [1, 2]}
         testurls.echoresource.mydata = originaldata
         response = client.get('/simple/mapper/echo.xml')
         response = client.put('/simple/mapper/echo', response.content, 'text/xml')
         self.assertEquals(originaldata, testurls.echoresource.mydata)
+
+    def test_xml_decimal(self):
+        """ test that numbers are converted to `Decimals` """
+
+        xml = """
+        <root>
+          <a>
+            <hiihoo>1</hiihoo>
+            <hiihoo>2.99</hiihoo>
+            <hiihoo>text</hiihoo>
+          </a>
+        </root>
+        """
+        datamapper.manager.register_mapper(XmlMapper(numbermode='decimal'), 'text/xml', 'xml')
+        client = Client()
+        response = client.put('/simple/mapper/echo', xml, 'text/xml')
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(testurls.echoresource.mydata == {'a': [Decimal('1'), Decimal('2.99'), 'text']})
+        response = client.get('/simple/mapper/echo.xml')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, '<?xml version="1.0" encoding="utf-8"?>\n<root><a><a_item>1</a_item><a_item>2.99</a_item><a_item>text</a_item></a></root>')
+        datamapper.manager.register_mapper(XmlMapper(numbermode='basic'), 'text/xml', 'xml')
+
+    def test_no_number_conversion(self):
+        """ test that numbers are left as strings """
+
+        xml = """
+        <root>
+          <a>
+            <hiihoo>1</hiihoo>
+            <hiihoo>2.99</hiihoo>
+            <hiihoo>text</hiihoo>
+          </a>
+        </root>
+        """
+
+        datamapper.manager.register_mapper(XmlMapper(), 'text/xml', 'xml')
+        client = Client()
+        response = client.put('/simple/mapper/echo', xml, 'text/xml')
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(testurls.echoresource.mydata == {'a': ['1', '2.99', 'text']})
+        response = client.get('/simple/mapper/echo.xml')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.content, '<?xml version="1.0" encoding="utf-8"?>\n<root><a><a_item>1</a_item><a_item>2.99</a_item><a_item>text</a_item></a></root>')
+        datamapper.manager.register_mapper(XmlMapper(numbermode='basic'), 'text/xml', 'xml')
+
+    def test_docstring_example(self):
+        """ if list item names are same all the time we not know the order """
+
+        xml = """
+        <root>
+            <orders>
+              <order_item><id>3</id><name>Skates</name></order_item>
+              <order_item><id>4</id><name>Snowboard</name></order_item>
+              <order_info>Urgent</order_info>
+            </orders>
+        </root>
+        """
+
+        client = Client()
+        response = client.put('/simple/mapper/echo', xml, 'text/xml')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(testurls.echoresource.mydata,
+                          {'orders': [{'id': 3, 'name': 'Skates'},
+                                      {'id': 4, 'name': 'Snowboard'},
+                                      'Urgent']})
+
 
     def test_list_items_unordered(self):
         """ if list item names are same all the time we not know the order """
@@ -617,8 +694,8 @@ class XmlMapperTest(TestCase):
         response = client.put('/simple/mapper/echo', xml, 'text/xml')
         self.assertEquals(response.status_code, 200)
         self.assertTrue(
-            testurls.echoresource.mydata == {'a': [Decimal('1'), Decimal('2'), Decimal('3')]} or \
-            testurls.echoresource.mydata == {'a': [Decimal('2'), Decimal('1'), Decimal('3')]}
+            testurls.echoresource.mydata == {'a': [1, 2, 3]} or \
+            testurls.echoresource.mydata == {'a': [2, 1, 3]}
             )
 
     def test_diverse_list_items(self):
@@ -636,8 +713,7 @@ class XmlMapperTest(TestCase):
         client = Client()
         response = client.put('/simple/mapper/echo', xml, 'text/xml')
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(testurls.echoresource.mydata,
-                          {'a': [Decimal('1'), Decimal('2'), {'a': Decimal('3')}]})
+        self.assertEquals(testurls.echoresource.mydata, {'a': [1, 2, {'a': 3}]})
         response = client.get('/simple/mapper/echo.xml')
         self.assertEquals(response.content, '<?xml version="1.0" encoding="utf-8"?>\n<root><a><a_item>1</a_item><a_item>2</a_item><a_item><a>3</a></a_item></a></root>')
 
@@ -654,7 +730,7 @@ class XmlMapperTest(TestCase):
         client = Client()
         response = client.put('/simple/mapper/echo', xml, 'text/xml')
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(testurls.echoresource.mydata, {'a': {'a': Decimal('9')}})
+        self.assertEquals(testurls.echoresource.mydata, {'a': {'a': 9}})
         response = client.get('/simple/mapper/echo.xml')
         self.assertEquals(response.content, '<?xml version="1.0" encoding="utf-8"?>\n<root><a><a>9</a></a></root>')
 
@@ -685,10 +761,10 @@ class XmlMapperTest(TestCase):
         response = client.put('/simple/mapper/echo', xml, 'text/xml')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(testurls.echoresource.mydata, {
-            'a': Decimal('3.99'),
+            'a': 3.99,
             'b': 'text',
-            'c': [Decimal('1'), Decimal('2'), Decimal('3.99')],
-            'd': [{'age': Decimal(23), 'name': 'luke'}, {'age': Decimal(65), 'name': 'obi'}]
+            'c': [1, 2, 3.99],
+            'd': [{'age': 23, 'name': 'luke'}, {'age': 65, 'name': 'obi'}]
             })
         response = client.get('/simple/mapper/echo', **{'HTTP_ACCEPT': 'text/xml'})
         self.assertEquals(response.status_code, 200)

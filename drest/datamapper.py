@@ -6,28 +6,20 @@
 #
 
 
-import re, types
-import xml.sax.handler
+import re
 import simplejson as json
 from decimal import Decimal, InvalidOperation
 from django.utils.encoding import smart_unicode, smart_str
 from django.http import HttpResponse
-from django.utils.xmlutils import SimplerXMLGenerator
 import errors
 from http import Response
 import util
 
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
-
-
 class DataMapper(object):
     """ Base class for all data mappers.
 
-
+    This class also implements ``text/plain`` datamapper.
     """
 
     content_type = 'text/plain'
@@ -36,11 +28,11 @@ class DataMapper(object):
     def format(self, response):
         """ Format the data.
 
-        It is usually a better idea to override `_format_data()` than
+        It is usually a better idea to override ``_format_data()`` than
         this method in derived classes.
 
-        @param response drests's `Response` object or the data
-        itself. May also be `None`.
+        @param response drests's ``Response`` object or the data
+        itself. May also be ``None``.
         """
 
         res = self._prepare_response(response)
@@ -50,11 +42,11 @@ class DataMapper(object):
     def parse(self, data, charset=None):
         """ Parse the data.
 
-        It is usually a better idea to override `_parse_data()` than
+        It is usually a better idea to override ``_parse_data()`` than
         this method in derived classes.
 
         @param charset the charset of the data. Uses datamapper's
-        default (`self.charset`) if not given.
+        default (``self.charset``) if not given.
         """
 
         charset = charset or self.charset
@@ -94,7 +86,7 @@ class DataMapper(object):
     def _prepare_response(self, response):
         """ Coerce response to drest's Response
 
-        @param response either the response data or a `Response` object.
+        @param response either the response data or a ``Response`` object.
         @return Response object
         """
 
@@ -103,7 +95,7 @@ class DataMapper(object):
         return response
 
     def _finalize_response(self, response):
-        """ Convert the `Response` object into django's `HttpResponse` """
+        """ Convert the ``Response`` object into django's ``HttpResponse`` """
 
         res = HttpResponse(content=response.content,
                            content_type=self._get_content_type())
@@ -152,49 +144,6 @@ class JsonDecimalMapper(DataMapper):
             raise errors.BadRequest('unable to parse data')
 
 
-class XmlMapper(DataMapper):
-
-    content_type = 'text/xml'
-
-    def _parse_data(self, data, charset):
-        return xml2obj(data)['root']
-
-    def _format_data(self, data, charset):
-        if data is None or data == '':
-            return u''
-
-        stream = StringIO.StringIO()
-        xml = SimplerXMLGenerator(stream, charset)
-        xml.startDocument()
-        xml.startElement(self._root_element_name(), {})
-        self._to_xml(xml, data)
-        xml.endElement(self._root_element_name())
-        xml.endDocument()
-        return stream.getvalue()
-
-    def _to_xml(self, xml, data, key=None):
-        if isinstance(data, (list, tuple)):
-            for item in data:
-                elemname = self._list_item_element_name(key)
-                xml.startElement(elemname, {})
-                self._to_xml(xml, item)
-                xml.endElement(elemname)
-        elif isinstance(data, dict):
-            for key, value in data.iteritems():
-                xml.startElement(key, {})
-                self._to_xml(xml, value, key)
-                xml.endElement(key)
-        else:
-            xml.characters(smart_unicode(data))
-
-    def _root_element_name(self):
-        return 'root'
-
-    def _list_item_element_name(self, key=None):
-        key = key or ''
-        return '%s_item' % (key,)
-
-
 class DataMapperManager(object):
     """ DataMapperManager tries to parse and format payload data when
     possible.
@@ -217,8 +166,8 @@ class DataMapperManager(object):
     def register_mapper(self, mapper, content_type, shortname=None):
         """ Register new mapper.
 
-        @param mapper mapper object needs to implement `parse()` and
-        `format()` functions.
+        @param mapper mapper object needs to implement ``parse()`` and
+        ``format()`` functions.
         """
 
         self._check_mapper(mapper)
@@ -243,7 +192,7 @@ class DataMapperManager(object):
     def set_default_mapper(self, mapper):
         """ Set the default mapper to be used, when no format is defined.
 
-        If given mapper is None, uses the `DataMapper`.
+        If given mapper is None, uses the ``DataMapper``.
         """
 
         if mapper is None:
@@ -292,7 +241,7 @@ class DataMapperManager(object):
         Short name can be either in query string (e.g. ?format=json)
         or as an extension to the URL (e.g. myresource.json).
 
-        :returns: short name of the mapper or `None` if not found.
+        :returns: short name of the mapper or ``None`` if not found.
         """
 
         format = request.GET.get('format', None)
@@ -346,60 +295,3 @@ def parse(data, request, default_mapper=None):
 
 #
 # datamapper.py ends here
-
-
-def xml2obj(src):
-    """
-    A simple function to converts XML data into native Python object.
-    """
-
-    def element_to_py(node, name, value):
-        """ Convert a single element (from xml tree) into value.
-
-
-        """
-
-        try:
-            node.append(value)
-        except AttributeError:
-            pass
-        else:
-            return node
-
-        if name in node:
-            node = node.values() + [value]
-        else:
-            node[name] = value
-        return node
-
-    class TreeBuilder(xml.sax.handler.ContentHandler):
-        def __init__(self):
-            self.stack = []
-            self.root = {}
-            self.current = self.root
-            self.text_parts = []
-        def startElement(self, name, attrs):
-            self.stack.append((self.current, self.text_parts))
-            self.current = {}
-            self.text_parts = []
-        def endElement(self, name):
-            if self.current:
-                obj = self.current
-            else:
-                # text only node is simply represented by the string or Decimal
-                text = ''.join(self.text_parts).strip()
-                try:
-                    obj = Decimal(text)
-                except InvalidOperation:
-                    obj = text or ''
-            self.current, self.text_parts = self.stack.pop()
-            self.current = element_to_py(self.current, name, obj)
-        def characters(self, content):
-            self.text_parts.append(content)
-
-    builder = TreeBuilder()
-    if isinstance(src,basestring):
-        xml.sax.parseString(src, builder)
-    else:
-        xml.sax.parse(src, builder)
-    return builder.root
