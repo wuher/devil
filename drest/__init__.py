@@ -9,6 +9,8 @@
 import logging, sys
 import datamapper
 from mappers.xmlmapper import XmlMapper
+from mappers.jsonmapper import JsonMapper
+
 
 def init_logging():
     log = logging.getLogger('drest')
@@ -21,7 +23,7 @@ def init_logging():
 
 def register_mappers():
     textmapper = datamapper.DataMapper()
-    jsonmapper = datamapper.JsonMapper()
+    jsonmapper = JsonMapper()
     xmlmapper = XmlMapper(numbermode='basic')
 
     # text mapper

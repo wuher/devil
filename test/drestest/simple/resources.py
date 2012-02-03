@@ -14,6 +14,8 @@ from drest.resource import Resource
 from drest.http import Response
 from drest.auth import HttpBasic
 from drest.perm.acl import PermissionController
+from drest.mappers.jsonmapper import JsonMapper
+
 
 
 class MyPermResource(Resource):
@@ -142,8 +144,6 @@ class MyScandicResource(Resource):
 
 
 class MyScandicJsonResource(Resource):
-    from drest.datamapper import JsonMapper
-
     class JsonAsciiMapper(JsonMapper):
         charset='ascii'
 
@@ -193,8 +193,6 @@ class MyDefaultMapperResourceTxt(Resource):
 
 class MyDefaultMapperResourceObj(Resource):
     """ Define default mapper. """
-    from drest.datamapper import JsonMapper
-
     default_mapper = JsonMapper()
 
     def get(self, request):

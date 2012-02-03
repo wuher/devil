@@ -14,7 +14,9 @@ from django.test.client import Client
 from drest import datamapper
 from drest import errors, http
 from drest.perm import management as syncdb
+from drest.datamapper import manager
 from drest.mappers.xmlmapper import XmlMapper
+from drest.mappers.jsonmapper import JsonMapper
 import urls as testurls
 
 
@@ -302,11 +304,9 @@ class JsonDecimalMapperTests(TestCase):
     """ Test the JsonMapper with decimals """
 
     def setUp(self):
-        from drest.datamapper import JsonMapper, manager
         manager.register_mapper(JsonMapper(use_decimal=True), 'application/json', 'json')
 
     def tearDown(self):
-        from drest.datamapper import JsonMapper, manager
         manager.register_mapper(JsonMapper(), 'application/json', 'json')
 
     def test_parse(self):
@@ -464,7 +464,7 @@ class MapperTest(TestCase):
     class AsciiMapper(datamapper.DataMapper):
         charset = 'ascii'
 
-    class AsciiJsonMapper(datamapper.JsonMapper):
+    class AsciiJsonMapper(JsonMapper):
         charset = 'ascii'
 
     def test_format_my_mapper(self):
@@ -507,12 +507,12 @@ class MapperTest(TestCase):
         self.assertTrue(isinstance (result, unicode))
 
     def test_parse_scandic_json(self):
-        m = datamapper.JsonMapper()
+        m = JsonMapper()
         result = m.parse('{"key": "lähtö"}', 'utf-8')
         self.assertTrue(isinstance (result['key'], unicode))
 
     def test_format_scandic_json(self):
-        m = datamapper.JsonMapper()
+        m = JsonMapper()
         data = {'key': 'lähtö'}
         resp = m.format(data)
         self.assertEquals(resp['Content-Type'], 'application/json; charset=utf-8')
