@@ -590,7 +590,7 @@ class DataMapperManagerTests(TestCase):
         mapper = self.manager._datamappers['*/*']
         self.assertEquals('text/plain', mapper.content_type)
 
-    def test_add_json(self):
+    def test_wildcard_mappers(self):
         self.manager.register_mapper(JsonMapper(), 'application/json', 'json')
         self.assertEquals(4, len(self.manager._datamappers.items()))
         self.assertEquals(self.manager._datamappers['*/*'].content_type, 'text/plain')
@@ -612,6 +612,47 @@ class DataMapperManagerTests(TestCase):
         self.manager.set_default_mapper(XmlMapper())
         self.assertEquals(6, len(self.manager._datamappers.items()))
         self.assertEquals(self.manager._datamappers['*/*'].content_type, 'text/xml')
+
+    def test_priorities_in_accept_header_1(self):
+        client = Client()
+        response = client.get(
+            '/simple/mapper/dict/',
+            **{'HTTP_ACCEPT': 'text/yaml,text/html;q=0.9,application/*;q=0.8'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+
+    def test_priorities_in_accept_header_2(self):
+        client = Client()
+        response = client.get(
+            '/simple/mapper/dict/',
+            **{'HTTP_ACCEPT': 'text/yaml,text/html;q=0.9,text/*;q=0.8'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'text/xml; charset=utf-8')
+
+    def test_priorities_in_accept_header_3(self):
+        client = Client()
+        response = client.get(
+            '/simple/mapper/dict/',
+            **{'HTTP_ACCEPT': 'text/yaml,text/html;q=0.9,text/plain;q=0.8,text/*;q=0.7'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
+
+    def test_priorities_in_accept_header_4(self):
+        """ Not Acceptable """
+        client = Client()
+        response = client.get(
+            '/simple/mapper/dict/',
+            **{'HTTP_ACCEPT': 'text/html;q=0.9,text/yaml;q=0.8'})
+        self.assertEquals(response.status_code, 406)
+
+    def test_priorities_in_accept_header_5(self):
+        """ Fallback to */* """
+        client = Client()
+        response = client.get(
+            '/simple/mapper/dict/',
+            **{'HTTP_ACCEPT': 'text/html;q=0.9,text/yaml;q=0.8,*/*;q=0.1'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
 
 
 class ValidationTest(TestCase):
@@ -643,6 +684,18 @@ class ValidationTest(TestCase):
             '{"name": "Luke Skywalker"}',
             'application/json')
         self.assertEquals(response.status_code, 400)
+
+    def test_parse_validation_list(self):
+        client = Client()
+        response = client.put(
+            '/simple/valid?format=json',
+            '[{"name": "Luke"}, {"name": "Shmi"}]',
+            'application/json')
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(response.content, '')
+        self.assertEquals(map(lambda x : x.cleaned_data, testurls.validationresource.mydata),
+                        [{"name": "Luke"}, {"name": "Shmi"}])
 
     def test_format_validation_pass(self):
         client = Client()

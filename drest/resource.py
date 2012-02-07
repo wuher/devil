@@ -117,11 +117,11 @@ class Resource(object):
         self._check_permission(request)
         method = self._get_method(request)
         data = self._get_input_data(request)
-        self._validate_input_data(data, request)
+        data = self._validate_input_data(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
-        response = self._format_response(request, response)
-        self._validate_output_data(request, response)
-        return response
+        formatted_response = self._format_response(request, response)
+        self._validate_output_data(response, request, formatted_response)
+        return formatted_response
 
     def _exec_method(self, method, request, data, *args, **kw):
         """ Execute appropriate request handler. """
@@ -170,40 +170,50 @@ class Resource(object):
     def _validate_input_data(self, data, request):
         """ Validate input data.
 
-        @raise `HttpStatusCodeError` if data is not valid
+        :parm request: the HTTP request
+        :param data: the parsed data
+        :type data: dictionary
+        :return: if validation is performed and succeeds the data is converted
+                 into whatever format the validation uses (by default Django's
+                 Forms) If not, the data is returned unchanged.
+        :raises: HttpStatusCodeError if data is not valid
         """
 
-        if self._is_data_method(request) and self.representation:
-            form = self.representation(data)
+        # when not to validate...
+        if not self._is_data_method(request) or not self.representation:
+            return data
+
+        def do_validation(item):
+            form = self.representation(item)
             if not form.is_valid():
                 self._invalid_input_data(data, form)
+            return form
 
-    def _validate_output_data(self, request, response):
+        if isinstance(data, (list, tuple)):
+            return map(do_validation, data)
+        else:
+            return do_validation(data)
+
+    def _validate_output_data(self, data, request, response):
         """ Validate the response data.
 
         @raise `HttpStatusCodeError` if data is not valid
         """
 
+        # when not to validate...
         if response.status_code is not 200 or \
             not self.representation or \
-            not response.content:
+            not data:
             return
-
-        charset = util.extract_charset(response['Content-Type'])
-        if self.mapper:
-            data = self.mapper.parse(response.content, charset)
-        else:
-            mapper = datamapper.manager.get_mapper_by_content_type(response['Content-Type'])
-            data = mapper.parse(response.content, charset)
 
         def do_validation(item):
             form = self.representation(item)
             if not form.is_valid():
                 self._invalid_output_data(data, form)
+            return form
 
-        if type(data) == types.ListType:
-            for item in data:
-                do_validation(item)
+        if isinstance(data, (list, tuple)):
+            map(do_validation, data)
         else:
             do_validation(data)
 
@@ -233,7 +243,7 @@ class Resource(object):
         todo: this should be more informative..
         """
 
-        logging.getLogger('drest').error('drest caught: ' + str(exc), exc_info=False)
+        logging.getLogger('drest').error('drest caught: ' + str(exc), exc_info=True)
 
         if settings.DEBUG:
             raise

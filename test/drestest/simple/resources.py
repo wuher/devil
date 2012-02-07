@@ -163,7 +163,7 @@ class MyValidationResource(Resource):
     representation = Representation
 
     def put(self, data, request):
-        pass
+        self.mydata = data
 
     def get(self, request, *args, **kw):
         status = request.GET.get('status', None)
@@ -172,9 +172,11 @@ class MyValidationResource(Resource):
         elif status == 'goodlist':
             return [
                 {'name': 'Luke'},
+                {'name': 'Shmi'},
                 ]
         elif status == 'badlist':
             return [
+                {'name': 'Luke'},
                 {'name': 'Luke Skywalker'},
                 ]
         elif status == 'none':

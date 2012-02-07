@@ -44,8 +44,9 @@ class DataMapper(object):
         It is usually a better idea to override ``_parse_data()`` than
         this method in derived classes.
 
-        @param charset the charset of the data. Uses datamapper's
+        :param charset: the charset of the data. Uses datamapper's
         default (``self.charset``) if not given.
+        :returns:
         """
 
         charset = charset or self.charset

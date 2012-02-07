@@ -26,6 +26,14 @@ def register_mappers():
     jsonmapper = JsonMapper()
     xmlmapper = XmlMapper(numbermode='basic')
 
+    # we'll be tolerant on what we receive
+    # remember to put these false content types in the beginning so that they
+    # are overridden by the proper ones
+    datamapper.manager.register_mapper(jsonmapper, 'application/x-javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/x-javascript', 'json')
+    datamapper.manager.register_mapper(jsonmapper, 'text/x-json', 'json')
+
     # text mapper
     datamapper.manager.register_mapper(textmapper, 'text/plain', 'text')
 
@@ -34,12 +42,6 @@ def register_mappers():
 
     # json mapper
     datamapper.manager.register_mapper(jsonmapper, 'application/json', 'json')
-
-    # we'll be tolerant on what we receive
-    datamapper.manager.register_mapper(jsonmapper, 'application/x-javascript', 'json')
-    datamapper.manager.register_mapper(jsonmapper, 'text/javascript', 'json')
-    datamapper.manager.register_mapper(jsonmapper, 'text/x-javascript', 'json')
-    datamapper.manager.register_mapper(jsonmapper, 'text/x-json', 'json')
 
 init_logging()
 register_mappers()
