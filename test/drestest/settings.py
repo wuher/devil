@@ -100,6 +100,9 @@ MIDDLEWARE_CLASSES = (
     # 'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+if DEBUG:
+    MIDDLEWARE_CLASSES += ('django_pdb.middleware.PdbMiddleware',)
+
 ROOT_URLCONF = 'drestest.urls'
 
 TEMPLATE_DIRS = (
@@ -113,6 +116,7 @@ ACL_RESOURCES = (
     )
 
 INSTALLED_APPS = (
+    'django_pdb',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.admin',

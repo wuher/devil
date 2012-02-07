@@ -27,10 +27,10 @@ class DataMapper(object):
     def format(self, response):
         """ Format the data.
 
-        It is usually a better idea to override ``_format_data()`` than
-        this method in derived classes.
+        In derived classed, it is usually better idea to override
+        ``_format_data()`` than this method.
 
-        @param response drests's ``Response`` object or the data
+        :param response: drests's ``Response`` object or the data
         itself. May also be ``None``.
         """
 
@@ -54,7 +54,7 @@ class DataMapper(object):
     def _decode_data(self, data, charset):
         """ Decode string data.
 
-        @return unicode string
+        :returns: unicode string
         """
 
         try:
@@ -77,7 +77,7 @@ class DataMapper(object):
     def _parse_data(self, data, charset):
         """ Parse the data
 
-        @param data the data (may be None)
+        :param data: the data (may be None)
         """
 
         return self._decode_data(data, charset) if data else u''
@@ -85,8 +85,8 @@ class DataMapper(object):
     def _prepare_response(self, response):
         """ Coerce response to drest's Response
 
-        @param response either the response data or a ``Response`` object.
-        @return Response object
+        :param response: either the response data or a ``Response`` object.
+        :returns: ``Response`` object
         """
 
         if not isinstance(response, Response):
@@ -108,10 +108,9 @@ class DataMapper(object):
 
 
 class DataMapperManager(object):
-    """ DataMapperManager tries to parse and format payload data when
-    possible.
+    """ This class finds the appropriate mapper for the request/response.
 
-    First, try to figure out the content-type of the data, then find
+    First, tries to figure out the content-type of the data, then find
     corresponding mapper and parse/format the data. If no mapper is
     registered or the content-type can't be determined, does nothing.
 
@@ -119,87 +118,149 @@ class DataMapperManager(object):
     1. Content-Type HTTP header (for parsing only)
     2. "format" query parameter (e.g. ?format=json)
     3. file-extension in the requestd URL (e.g. /user.json)
+    4. HTTP Accept header (for formatting only)
     """
 
-    _default_mapper = DataMapper()
     _format_query_pattern = re.compile('.*\.(?P<format>\w{1,8})$')
-    _datamappers = {
-        }
+    _datamappers = {}
+
+    def __init__(self):
+        """ Initialize the manager.
+
+        The ``_datamappers`` dictianary is initialized here to make testing easier.
+        """
+
+        self._datamappers = {
+            '*/*': DataMapper()
+            }
 
     def register_mapper(self, mapper, content_type, shortname=None):
         """ Register new mapper.
 
-        @param mapper mapper object needs to implement ``parse()`` and
+        :param mapper: mapper object needs to implement ``parse()`` and
         ``format()`` functions.
         """
 
         self._check_mapper(mapper)
-        self._datamappers[content_type] = mapper
-        if shortname:
-            self._datamappers[shortname] = mapper
+        cont_type_names = self._get_content_type_names(content_type, shortname)
+        self._datamappers.update(dict([(name, mapper) for name in cont_type_names]))
 
-    def select_formatter(self, request, default_formatter=None):
-        mapper_name = self._get_short_name(request)
-        if not mapper_name:
-            mapper_name = self._parse_access_header(request)
-        return self._get_mapper(mapper_name, default_formatter)
+    def select_formatter(self, request, resource):
+        """ Select appropriate formatter based on the request.
 
-    def select_parser(self, request, default_parser=None):
-        mapper_name = self._get_mapper_name(request)
-        return self._get_mapper(mapper_name, default_parser)
+        :param request: the HTTP request
+        :param resource: the invoked resource
+        """
+
+        # 1. get from resource
+        if resource.mapper:
+            return resource.mapper
+        # 2. get from url
+        mapper_name = self._get_name_from_url(request)
+        if mapper_name:
+            return self._get_mapper(mapper_name)
+        # 3. get from accept header
+        mapper_name = self._get_name_from_accept(request)
+        if mapper_name:
+            return self._get_mapper(mapper_name)
+        # 4. use resource's default
+        if resource.default_mapper:
+            return resource.default_mapper
+        # 5. use manager's default
+        return self._get_default_mapper()
+
+    def select_parser(self, request, resource):
+        """ Select appropriate parser based on the request.
+
+        :param request: the HTTP request
+        :param resource: the invoked resource
+        """
+
+        # 1. get from resource
+        if resource.mapper:
+            return resource.mapper
+        # 2. get from content type
+        mapper_name = self._get_name_from_content_type(request)
+        if mapper_name:
+            return self._get_mapper(mapper_name)
+        # 3. get from url
+        mapper_name = self._get_name_from_url(request)
+        if mapper_name:
+            return self._get_mapper(mapper_name)
+        # 4. use resource's default
+        if resource.default_mapper:
+            return resource.default_mapper
+        # 5. use manager's default
+        return self._get_default_mapper()
 
     def get_mapper_by_content_type(self, content_type):
+        """ Returs mapper based on the content type. """
+
         content_type = util.strip_charset(content_type)
         return self._get_mapper(content_type)
 
     def set_default_mapper(self, mapper):
         """ Set the default mapper to be used, when no format is defined.
 
-        If given mapper is None, uses the ``DataMapper``.
+        This is the same as calling ``register_mapper`` with ``*/*`` with the
+        exception of giving ``None`` as parameter.
+
+        :param mapper: the mapper. If None, uses ``DataMapper``.
         """
 
-        if mapper is None:
-            self._default_mapper = DataMapper()
-        else:
-            self._check_mapper(mapper)
-            self._default_mapper = mapper
+        mapper = mapper or DataMapper()
+        self._datamappers['*/*'] = mapper
 
-    def _get_mapper(self, mapper_name, default_mapper=None):
-        """ Select appropriate mapper for the incoming data. """
-        if not mapper_name:
-            # unspecified -> use default
-            return self._get_default_mapper(default_mapper)
-        elif not mapper_name in self._datamappers:
-            # unknown
-            return self._unknown_format(mapper_name)
-        else:
+    def _get_default_mapper(self):
+        """ Return the default mapper.
+
+        This is the mapper that response to ``Content-Type: */*``.
+        """
+
+        return self._datamappers['*/*']
+
+    def _get_mapper(self, mapper_name):
+        """ Return the mapper based on the given name.
+
+        :returns: the mapper based on the given ``mapper_name``
+        :raises: NotAcceptable if we don't support the requested format.
+        """
+
+        if mapper_name in self._datamappers:
             # mapper found
             return self._datamappers[mapper_name]
-
-    def _get_mapper_name(self, request):
-        """ """
-        content_type = request.META.get('CONTENT_TYPE', None)
-
-        if not content_type:
-            return self._get_short_name(request)
         else:
+            # unsupported format
+            return self._unknown_format(mapper_name)
+
+    def _get_name_from_content_type(self, request):
+        """ Get name from Content-Type header """
+
+        content_type = request.META.get('CONTENT_TYPE', None)
+        if content_type:
             # remove the possible charset-encoding info
             return util.strip_charset(content_type)
+        return None
 
-    def _parse_access_header(self, request):
-        """ Parse the Access HTTP header.
+    def _get_name_from_accept(self, request):
+        """ Process the Accept HTTP header.
 
-        :returns: the
+        Find the most suitable mapper that the client wants and we support.
+
+        :returns: the preferred mapper based on the accept header or ``None``.
         """
 
         accepts = util.parse_accept_header(request.META.get("HTTP_ACCEPT", ""))
+        if not accepts:
+            return None
+
         for accept in accepts:
             if accept[0] in self._datamappers:
                 return accept[0]
-        return None
+        raise errors.NotAcceptable()
 
-    def _get_short_name(self, request):
-        """ Determine short name for the mapper.
+    def _get_name_from_url(self, request):
+        """ Determine short name for the mapper based on the URL.
 
         Short name can be either in query string (e.g. ?format=json)
         or as an extension to the URL (e.g. myresource.json).
@@ -214,26 +275,22 @@ class DataMapperManager(object):
                 format = match.group('format')
         return format
 
-    def _get_default_mapper(self, resource_default_mapper):
-        """ Return default mapper for the resource.
+    def _unknown_format(self, format):
+        """ Deal with the situation when we don't support the requested format.
 
-        todo: optimize. isinstance gets called on every request if
-        mapper isn't specified explicitly.
+        :raises: NotAcceptable always
         """
 
-        # if resource didn't give any default mapper, use our default mapper
-        if not resource_default_mapper:
-            return self._default_mapper
-
-        # resource did define a default mapper (either string or mapper obj)
-        if isinstance(resource_default_mapper, basestring):
-            return self._get_mapper(resource_default_mapper)
-        else:
-            return resource_default_mapper
-
-    def _unknown_format(self, format):
-        """ """
         raise errors.NotAcceptable('unknown data format: ' + format)
+
+    def _get_content_type_names(self, content_type, shortname):
+        """ """
+        ret = [shortname, content_type] if shortname else [content_type]
+
+        mtype, subtype = content_type.split('/', 1)
+        if mtype != '*' and subtype != '*':
+            ret.append('%s/*' % (mtype,))
+        return ret
 
     def _check_mapper(self, mapper):
         """ Check that the mapper has valid signature. """
@@ -247,13 +304,13 @@ class DataMapperManager(object):
 manager = DataMapperManager()
 
 # utility function to format outgoing data (selects formatter automatically)
-def format(request, response, default_mapper=None):
-    return manager.select_formatter(request, default_mapper).format(response)
+def format(request, response, resource):
+    return manager.select_formatter(request, resource).format(response)
 
 # utility function to parse incoming data (selects parser automatically)
-def parse(data, request, default_mapper=None):
+def parse(data, request, resource):
     charset = util.get_charset(request)
-    return manager.select_parser(request, default_mapper).parse(data, charset)
+    return manager.select_parser(request, resource).parse(data, charset)
 
 
 #

@@ -14,6 +14,7 @@ from django.test.client import Client
 from drest import datamapper
 from drest import errors, http
 from drest.perm import management as syncdb
+from drest.resource import Resource
 from drest.datamapper import manager
 from drest.mappers.xmlmapper import XmlMapper
 from drest.mappers.jsonmapper import JsonMapper
@@ -254,6 +255,13 @@ class HttpFormatTest(TestCase):
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(json.loads(response.content), {'a': 3.99, 'b': 3.99})
 
+    def test_accept_header_wildcard(self):
+        client = Client()
+        response = client.get('/simple/mapper/dict/', **{'HTTP_ACCEPT': 'application/*'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEquals(json.loads(response.content), {'a': 3.99, 'b': 3.99})
+
     def test_default(self):
         client = Client()
         response = client.get('/simple/mapper/text/')
@@ -329,39 +337,49 @@ class JsonDecimalMapperTests(TestCase):
 
 
 class MapperFormatTest(TestCase):
-    """ Test formatting directly """
+    """ Test formatting directly (bypassing http)
+
+
+    Using the module level ``format`` function, meaning that these tests
+    also use the mapper manager.
+    """
+
+    class FooResource(Resource): pass
+    foores = FooResource()
 
     def test_unknown_by_content_type(self):
         """ Test that request content-type doesn't affect anything. """
         request = FakeRequest('/hiihoo.json', 'hiihootype')
-        response = datamapper.format(request, {'a': 1})
+        response = datamapper.format(request, {'a': 1}, self.foores)
         self.assertEquals(json.loads(response.content), {'a': 1})
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
 
     def test_unknown_by_extension(self):
         request = FakeRequest('/hiihoo.yaml')
-        self.assertRaises(errors.NotAcceptable, datamapper.format, request, {'a': 1})
+        self.assertRaises(
+            errors.NotAcceptable, datamapper.format, request, {'a': 1}, self.foores)
 
     def test_unknown_by_qs(self):
         request = FakeRequest('/hiihoo', format='yaml')
-        self.assertRaises(errors.NotAcceptable, datamapper.format, request, {'a': 1})
+        self.assertRaises(
+            errors.NotAcceptable, datamapper.format, request, {'a': 1}, self.foores)
 
     def test_default_formatter(self):
         request = FakeRequest('/hiihoo')
-        response = datamapper.format(request, 'Hello, world!')
+        response = datamapper.format(request, 'Hello, world!', self.foores)
         self.assertEquals(response.content, 'Hello, world!')
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
 
     def test_none_data_default(self):
         request = FakeRequest('/hiihoo')
-        response = datamapper.format(request, None)
+        response = datamapper.format(request, None, self.foores)
         self.assertEquals(response.content, '')
         self.assertEquals(response.status_code, 0)
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
 
     def test_none_data_json(self):
         request = FakeRequest('/hiihoo', format='json')
-        response = datamapper.format(request, None)
+        response = datamapper.format(request, None, self.foores)
         self.assertEquals(response.content, '')
         self.assertEquals(response.status_code, 0)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
@@ -375,88 +393,118 @@ class MapperFormatTest(TestCase):
         # install my own default mapper
         datamapper.manager.set_default_mapper(MyDataMapper())
         request = FakeRequest('/hiihoo')
-        response = datamapper.format(request, 'Hello, world!')
+        response = datamapper.format(request, 'Hello, world!', self.foores)
         self.assertEquals(response.content, 'this is my data, i have nothing else')
         self.assertEquals(response['Content-Type'], 'text/jedi; charset=utf-8')
 
         # put the original default mapper back
         datamapper.manager.set_default_mapper(None)
         request = FakeRequest('/hiihoo')
-        response = datamapper.format(request, 'Hello, world!')
+        response = datamapper.format(request, 'Hello, world!', self.foores)
         self.assertEquals(response.content, 'Hello, world!')
         self.assertEquals(response['Content-Type'], 'text/plain; charset=utf-8')
 
     def test_response_to_json(self):
         request = FakeRequest('/', format='json')
-        response = datamapper.format(request, http.Response(0, {'a': 1}))
+        response = datamapper.format(
+            request, http.Response(0, {'a': 1}), self.foores)
         self.assertEquals(json.loads(response.content), {'a': 1})
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.status_code, 0)
 
     def test_no_data(self):
         request = FakeRequest('/hiihoo.json')
-        self.assertEquals((datamapper.format(request, None)).content, '')
+        self.assertEquals('',
+                          (datamapper.format(request, None, self.foores)).content)
         request = FakeRequest('/hiihoo.json', '')
-        self.assertEquals((datamapper.format(request, '')).content, '')
+        self.assertEquals('',
+                          (datamapper.format(request, '', self.foores)).content)
         request = FakeRequest('/hiihoo.json', '{}')
-        self.assertEquals('{}', (datamapper.format(request, {})).content)
+        self.assertEquals('{}',
+                          (datamapper.format(request, {}, self.foores)).content)
         request = FakeRequest('/hiihoo.json', '[]')
-        self.assertEquals('[]', (datamapper.format(request, [])).content)
+        self.assertEquals('[]',
+                          (datamapper.format(request, [], self.foores)).content)
 
 
 class MapperParseTest(TestCase):
-    """ Test parsing directly """
+    """ Test parsing directly. (bypassing http)
+
+    Using the module level ``parse`` function, meaning that these tests
+    also use the mapper manager.
+    """
+
+    class FooResource(Resource): pass
+    foores = FooResource()
 
     def test_unknown_by_content_type(self):
         request = FakeRequest('/hiihoo.json', 'hiihoo', 'hiihootype')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
+        self.assertRaises(
+            errors.NotAcceptable, datamapper.parse, 'hiihoo', request, self.foores)
 
     def test_unknown_by_extension(self):
         request = FakeRequest('/hiihoo.yaml', 'hiihoo')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
+        self.assertRaises(
+            errors.NotAcceptable, datamapper.parse, 'hiihoo', request, self.foores)
 
     def test_unknown_by_qs(self):
         request = FakeRequest('/hiihoo', 'hiihoo', format='yaml')
-        self.assertRaises(errors.NotAcceptable, datamapper.parse, 'hiihoo', request)
+        self.assertRaises(
+            errors.NotAcceptable, datamapper.parse, 'hiihoo', request, self.foores)
 
     def test_default_parser(self):
         request = FakeRequest('/hiihoo', '{"a": 1}')
-        self.assertEquals('{"a": 1}', datamapper.parse('{"a": 1}', request))
+        self.assertEquals('{"a": 1}',
+                          datamapper.parse('{"a": 1}', request, self.foores))
 
     def test_json_by_content_type(self):
         request = FakeRequest('/hiihoo', '{"a": 1}', 'application/json')
-        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
+        self.assertEquals({'a': 1},
+                          datamapper.parse('{"a": 1}', request, self.foores))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', 'application/json')
-        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
+        self.assertEquals({'a': 1},
+                          datamapper.parse('{"a": 1}', request, self.foores))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', 'application/json', format='yaml')
-        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
+        self.assertEquals({'a': 1},
+                          datamapper.parse('{"a": 1}', request, self.foores))
 
     def test_json_by_qs(self):
         request = FakeRequest('/hiihoo', '{"a": 1}', format='json')
-        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
+        self.assertEquals({'a': 1},
+                          datamapper.parse('{"a": 1}', request, self.foores))
         request = FakeRequest('/hiihoo.yaml', '{"a": 1}', format='json')
-        self.assertEquals({'a': 1}, datamapper.parse('{"a": 1}', request))
+        self.assertEquals({'a': 1},
+                          datamapper.parse('{"a": 1}', request, self.foores))
+
 
     def test_json_by_extension(self):
         request = FakeRequest('/hiihoo.json', '{"a": 3, "b": 4}')
-        self.assertEquals(datamapper.parse('{"a": 3, "b": 4}', request), {'a': 3, 'b': 4})
+        self.assertEquals(datamapper.parse('{"a": 3, "b": 4}', request, self.foores),
+                          {'a': 3, 'b': 4})
 
     def test_bad_data(self):
         request = FakeRequest('/hiihoo.json', 'hiihoo')
-        self.assertRaises(errors.BadRequest, datamapper.parse, 'hiihoo', request)
+        self.assertRaises(
+            errors.BadRequest, datamapper.parse, 'hiihoo', request, self.foores)
 
     def test_no_data(self):
         request = FakeRequest('/hiihoo.json')
-        self.assertRaises(TypeError, datamapper.parse, request)
+        self.assertRaises(
+            TypeError, datamapper.parse, request, self.foores)
         request = FakeRequest('/hiihoo.json', '')
-        self.assertRaises(errors.BadRequest, datamapper.parse, 'hiihoo', request)
+        self.assertRaises(
+            errors.BadRequest, datamapper.parse, 'hiihoo', request, self.foores)
         request = FakeRequest('/hiihoo.json', '{}')
-        self.assertEquals({}, datamapper.parse('{}', request))
+        self.assertEquals({}, datamapper.parse('{}', request, self.foores))
         request = FakeRequest('/hiihoo.json', '[]')
-        self.assertEquals([], datamapper.parse('[]', request))
+        self.assertEquals([], datamapper.parse('[]', request, self.foores))
 
 
 class MapperTest(TestCase):
+    """ Test individual mappers directly.
+
+    Bypassing the mapper manager test custom and builtin mappers directly.
+    """
 
     class MyDataMapper(datamapper.DataMapper):
         charset = 'iso-8859-1'
@@ -526,6 +574,44 @@ class MapperTest(TestCase):
         resp = m.format(data)
         self.assertEquals(resp['Content-Type'], 'application/json; charset=ascii')
         self.assertEquals(resp.content, '{\n    "key": "lähtö"\n}')
+
+
+class DataMapperManagerTests(TestCase):
+    """ Test that the mapper manager chooses the right mapper.
+
+    Give different content-types and see that a correct mapper is chosen.
+    """
+
+    def setUp(self):
+        self.manager = datamapper.DataMapperManager()
+
+    def test_initial(self):
+        self.assertEquals(1, len(self.manager._datamappers.items()))
+        mapper = self.manager._datamappers['*/*']
+        self.assertEquals('text/plain', mapper.content_type)
+
+    def test_add_json(self):
+        self.manager.register_mapper(JsonMapper(), 'application/json', 'json')
+        self.assertEquals(4, len(self.manager._datamappers.items()))
+        self.assertEquals(self.manager._datamappers['*/*'].content_type, 'text/plain')
+        self.assertEquals(self.manager._datamappers['application/*'].content_type, 'application/json')
+        self.assertEquals(self.manager._datamappers['application/json'].content_type, 'application/json')
+        self.assertEquals(self.manager._datamappers['json'].content_type, 'application/json')
+
+        # now override application/* with xml
+        self.manager.register_mapper(XmlMapper(), 'application/xml', 'xml')
+        self.assertEquals(6, len(self.manager._datamappers.items()))
+        self.assertEquals(self.manager._datamappers['application/*'].content_type, 'text/xml')
+
+        # now override application/* with json
+        self.manager.register_mapper(JsonMapper(), 'application/*')
+        self.assertEquals(6, len(self.manager._datamappers.items()))
+        self.assertEquals(self.manager._datamappers['application/*'].content_type, 'application/json')
+
+        # now set default mapper to xml
+        self.manager.set_default_mapper(XmlMapper())
+        self.assertEquals(6, len(self.manager._datamappers.items()))
+        self.assertEquals(self.manager._datamappers['*/*'].content_type, 'text/xml')
 
 
 class ValidationTest(TestCase):

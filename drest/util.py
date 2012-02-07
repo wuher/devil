@@ -89,6 +89,9 @@ def parse_accept_header(accept):
             return -1
         return 0
 
+    if not accept:
+        return []
+
     result = []
     for media_range in accept.split(","):
         parts = media_range.split(";")

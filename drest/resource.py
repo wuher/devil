@@ -14,9 +14,9 @@ import errors, datamapper, util
 from http import codes
 import logging
 
+
 # todo: move and make configurable
 REALM = "drest"
-
 
 # todo: move somewhere and add note about borrowing this from piston
 def coerce_put_post(request):
@@ -145,11 +145,8 @@ class Resource(object):
         """
 
         if isinstance(response, HttpResponse):
-            res = response
-        elif self.mapper:
-            res = self.mapper.format(response)
-        else:
-            res = datamapper.format(request, response, self.default_mapper)
+            return response
+        res = datamapper.format(request, response, self)
         # data is now formatted, let's check if the status_code is set
         if res.status_code is 0:
             res.status_code = 200
@@ -168,10 +165,7 @@ class Resource(object):
 
     def _parse_input_data(self, data, request):
         """ Execute appropriate parser. """
-        if self.mapper:
-            return self.mapper.parse(data, util.get_charset(request))
-        else:
-            return datamapper.parse(data, request, self.default_mapper)
+        return datamapper.parse(data, request, self)
 
     def _validate_input_data(self, data, request):
         """ Validate input data.

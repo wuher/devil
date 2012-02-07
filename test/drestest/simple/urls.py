@@ -24,8 +24,8 @@ decimalresource = resources.MyDecimalResource()
 scandicresource = resources.MyScandicResource()
 validationresource = resources.MyValidationResource()
 scandicjsonresource = resources.MyScandicJsonResource()
-defaulttxtmapperresource = resources.MyDefaultMapperResourceTxt()
-defaultobjmapperresource = resources.MyDefaultMapperResourceObj()
+defaulttxtmapperresource = resources.MyDefaultMapperResource_1()
+defaultobjmapperresource = resources.MyDefaultMapperResource_2()
 
 acl_resources = (
     dictresource,

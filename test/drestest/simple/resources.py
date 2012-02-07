@@ -15,6 +15,7 @@ from drest.http import Response
 from drest.auth import HttpBasic
 from drest.perm.acl import PermissionController
 from drest.mappers.jsonmapper import JsonMapper
+from drest.mappers.xmlmapper import XmlMapper
 
 
 
@@ -182,16 +183,19 @@ class MyValidationResource(Resource):
             return {'name': 'Luke Skywalker'}
 
 
-class MyDefaultMapperResourceTxt(Resource):
-    """ Define default mapper. """
+class MyDefaultMapperResource_1(Resource):
+    """ Define a mapper and a default mapper. """
 
-    default_mapper = 'json'
+    mapper = JsonMapper()
+
+    # this won't be used
+    default_mapper = XmlMapper()
 
     def get(self, request):
         return {'key': 'löyhkä'}
 
 
-class MyDefaultMapperResourceObj(Resource):
+class MyDefaultMapperResource_2(Resource):
     """ Define default mapper. """
     default_mapper = JsonMapper()
 
