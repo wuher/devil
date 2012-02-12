@@ -28,9 +28,10 @@ codes.__dict__.update(CODES)
 
 
 class Response(object):
-    def __init__(self, code, data):
+    def __init__(self, code, data, headers={}):
         self.code = code
         self.content = data
+        self.headers = headers
 
 
 #

@@ -5,11 +5,10 @@
 dRest aims to be simple to use REST framework for Django. dRest is
 influenced by [piston][1].
 
-
 ## Key Characteristics
 
   - `Resource` is the key concept, everything builds around it.
-  - Automatic content negotiation (parsers / formatters).
+  - Builtin content negotiation (parsers / formatters).
   - Gets out of your way
     - You can use additional features but you don't need to.
     - Everything is optional and works with default values.
@@ -25,10 +24,10 @@ influenced by [piston][1].
     - We can add this option later if it's concidered useful, but:
     - This rarely works for legacy systems anyway
     - For anything bigger, it's usually a good idea to decouple
-      model and presentation
+      model and representation
   - Ability to define representation using Django's forms
     - Automatic validation of incoming/outgoing data
-    - Automatic documentation generation
+    - Automatic documentation generation (_Not implemented yet_)
 
 
 ## Example

@@ -18,6 +18,7 @@ import logging
 # todo: move and make configurable
 REALM = "drest"
 
+
 # todo: move somewhere and add note about borrowing this from piston
 def coerce_put_post(request):
     """
@@ -111,6 +112,8 @@ class Resource(object):
 
         This function lets `HttpStatusCodeError`s fall through. They
         are caught and transformed into HTTP responses by the caller.
+
+        :return: ``HttpResponse``
         """
 
         self._authenticate(request)
@@ -136,11 +139,11 @@ class Resource(object):
         If the response is `HttpResponse`, does nothing. Otherwise,
         formats the response using appropriate mapper.
 
-        @param response resource's response. This can be
+        :param response: resource's response. This can be
            - `None`,
            - django's `HttpResponse`
            - drest's `Response`
-           - dictionary
+           - dictionary (or list of dictionaries)
            - plaintext
         """
 
@@ -150,11 +153,28 @@ class Resource(object):
         # data is now formatted, let's check if the status_code is set
         if res.status_code is 0:
             res.status_code = 200
+        # apply headers
+        self._add_resposne_headers(res, response)
         return res
+
+    def _add_resposne_headers(self, django_response, drest_response):
+        """ Add response headers.
+
+        Add HTTP headers from drest't response to django's response. 
+        """
+
+        try:
+            headers = drest_response.headers
+        except AttributeError:
+            # ok, there was no drest_response
+            pass
+        else:
+            for k, v in headers.items():
+                django_response[k] = v
+        return django_response
 
     def _get_input_data(self, request):
         """ If there is data, parse it, otherwise return None. """
-
         # only PUT and POST should provide data
         if not self._is_data_method(request):
             return None
@@ -197,7 +217,10 @@ class Resource(object):
     def _validate_output_data(self, data, request, response):
         """ Validate the response data.
 
-        @raise `HttpStatusCodeError` if data is not valid
+        :param response: ``HttpResponse``
+        :param data: payload data. This implementation assumes 
+                     dict or list of dicts.
+        :raises: `HttpStatusCodeError` if data is not valid
         """
 
         # when not to validate...
@@ -300,7 +323,7 @@ class Resource(object):
             If the request has already been authenticated, does
             nothing.
 
-            @param exc_obj exception object to be thrown if anonymous
+            :param exc_obj: exception object to be thrown if anonymous
             access is not permitted.
             """
 
@@ -328,7 +351,7 @@ class Resource(object):
     def _check_permission(self, request):
         """ Check user permissions.
 
-        @raise Forbidden if user doesn't have access to the resource.
+        :raises: Forbidden, if user doesn't have access to the resource.
         """
 
         if self.access_controller:

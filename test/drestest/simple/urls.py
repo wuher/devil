@@ -19,6 +19,7 @@ anonresource = resources.MyAnonResource()
 permresource = resources.MyPermResource()
 noneresource = resources.MyNoneResource()
 echoresource = resources.MyEchoResource()
+personresource = resources.PersonResource()
 mapperresource = resources.MyMapperResource()
 decimalresource = resources.MyDecimalResource()
 scandicresource = resources.MyScandicResource()
@@ -40,8 +41,9 @@ acl_resources = (
 urlpatterns = patterns('',
     url(r'^perm', permresource),
     url(r'^auth$', authresource),
+    url(r'^person', personresource),
     url(r'^auth/anon', anonresource),
-    url(r'^valid', validationresource),
+    url(r'^valid', validationresource, name='validation'),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),

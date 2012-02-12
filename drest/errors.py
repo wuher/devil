@@ -10,7 +10,10 @@ from http import codes
 
 
 class HttpStatusCodeError(Exception):
+    """ Base class for all exceptions raising an HTTP error code. """
+
     def __init__(self, code, content=None, *args, **kw):
+        """ Store code and content """
         self.code = code
         self.content = content
         Exception.__init__(self, *args, **kw)

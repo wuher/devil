@@ -16,7 +16,8 @@ from drest.auth import HttpBasic
 from drest.perm.acl import PermissionController
 from drest.mappers.jsonmapper import JsonMapper
 from drest.mappers.xmlmapper import XmlMapper
-
+from simple import representations, models
+from django.core.urlresolvers import reverse
 
 
 class MyPermResource(Resource):
@@ -125,6 +126,7 @@ class MyNoneResource(Resource):
     def get(self, request, *args, **kw):
         return None
 
+
 class MyTextResource(Resource):
     """ Return plaintext """
 
@@ -187,7 +189,6 @@ class MyValidationResource(Resource):
 
 class MyDefaultMapperResource_1(Resource):
     """ Define a mapper and a default mapper. """
-
     mapper = JsonMapper()
 
     # this won't be used
@@ -203,6 +204,24 @@ class MyDefaultMapperResource_2(Resource):
 
     def get(self, request):
         return {'key': 'löyhkä'}
+
+
+class PersonResource(Resource):
+    """ Person resource. """
+    default_mapper = JsonMapper()
+    representation = representations.Person
+
+    def get(self, request):
+        people = models.Person.objects.all()
+        return [{'id': person.pk, 'name': person.name, 'age': person.age} \
+                for person in people]
+
+    def post(self, data, request):
+        data.save()
+        return Response(
+            201, 
+            None, 
+            {'Location': '%s/%s' % (reverse('validation'), data.instance.pk)})
 
 
 #

@@ -910,5 +910,27 @@ class XmlMapperTest(TestCase):
         self.assertEquals(response.content, '<?xml version="1.0" encoding="utf-8"?>\n<root><a>3.99</a><c><c_item>1</c_item><c_item>2</c_item><c_item>3.99</c_item></c><b>text</b><d><d_item><age>23</age><name>luke</name></d_item><d_item><age>65</age><name>obi</name></d_item></d></root>')
 
 
+class RepresentationToModelTests(TestCase):
+
+    def test_basic_post_get(self):
+
+        person = {
+            u'name': u'Luke',
+            u'age': 22
+            }
+
+        client = Client()
+
+        # first post
+        response = client.post('/simple/person', json.dumps(person), 'application/json')
+        self.assertEquals(response.status_code, 201)
+        self.assertEquals(response['Location'], 'http://testserver/simple/valid/1')
+
+        # then get
+        response = client.get('/simple/person?format=json')
+        self.assertEquals(response.status_code, 200)
+        person['id'] = 1
+        self.assertEquals(json.loads(response.content), [person])
+
 #
 # tests.py ends here

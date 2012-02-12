@@ -31,7 +31,8 @@ class DataMapper(object):
         ``_format_data()`` than this method.
 
         :param response: drests's ``Response`` object or the data
-        itself. May also be ``None``.
+                         itself. May also be ``None``.
+        :return: django's ``HttpResponse``
         """
 
         res = self._prepare_response(response)
@@ -95,7 +96,10 @@ class DataMapper(object):
         return response
 
     def _finalize_response(self, response):
-        """ Convert the ``Response`` object into django's ``HttpResponse`` """
+        """ Convert the ``Response`` object into django's ``HttpResponse``
+
+        :return: django's ``HttpResponse``
+        """
 
         res = HttpResponse(content=response.content,
                            content_type=self._get_content_type())
