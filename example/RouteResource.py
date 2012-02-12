@@ -6,7 +6,7 @@
 #
 
 
-from drest.resource import Resource
+from devil.resource import Resource
 
 
 class RouteResource(Resource):

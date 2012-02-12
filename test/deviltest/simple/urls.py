@@ -7,7 +7,7 @@
 
 
 from django.conf.urls.defaults import patterns, include, url
-from drest.resource import Resource
+from devil.resource import Resource
 import resources
 
 

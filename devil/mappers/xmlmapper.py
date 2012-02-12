@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 import xml.sax.handler
 from django.utils.xmlutils import SimplerXMLGenerator
 from django.utils.encoding import smart_unicode
-from drest.datamapper import DataMapper
+from devil.datamapper import DataMapper
 
 try:
     import cStringIO as StringIO

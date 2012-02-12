@@ -1,4 +1,4 @@
-# Django settings for drestest project.
+# Django settings for deviltest project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'drest.db',
+        'NAME': 'devil.db',
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -103,7 +103,7 @@ MIDDLEWARE_CLASSES = (
 if DEBUG:
     MIDDLEWARE_CLASSES += ('django_pdb.middleware.PdbMiddleware',)
 
-ROOT_URLCONF = 'drestest.urls'
+ROOT_URLCONF = 'deviltest.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -112,7 +112,7 @@ TEMPLATE_DIRS = (
 )
 
 ACL_RESOURCES = (
-    'drestest.simple.urls.acl_resources',
+    'deviltest.simple.urls.acl_resources',
     )
 
 INSTALLED_APPS = (
@@ -121,8 +121,8 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.sessions',
-    'drest.perm',
-    'drestest.simple',
+    'devil.perm',
+    'deviltest.simple',
 )
 
 FIXTURE_DIRS = ('simple/fixtures',)

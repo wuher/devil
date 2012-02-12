@@ -7,8 +7,8 @@
 
 
 import simplejson as json
-from drest.datamapper import DataMapper
-from drest import errors
+from devil.datamapper import DataMapper
+from devil import errors
 
 
 class JsonMapper(DataMapper):

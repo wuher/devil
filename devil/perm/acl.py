@@ -6,7 +6,7 @@
 #
 
 
-from drest import errors
+from devil import errors
 
 
 class PermissionController(object):

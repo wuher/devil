@@ -8,10 +8,10 @@
 
 import types
 from django.db.models import signals
-from drest.resource import Resource
+from devil.resource import Resource
 
 
-PERM_APP_NAME = 'drest'
+PERM_APP_NAME = 'devil'
 
 
 def _split_mod_var_names(resource_name):

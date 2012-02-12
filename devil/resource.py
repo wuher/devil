@@ -16,7 +16,7 @@ import logging
 
 
 # todo: move and make configurable
-REALM = "drest"
+REALM = 'devil'
 
 
 # todo: move somewhere and add note about borrowing this from piston
@@ -66,7 +66,7 @@ class Resource(object):
 
     The response returned by `get()` can be one of the following:
       - django's HttpResponse
-      - drest's Response
+      - devil's Response
       - dictionary
       - plaintext
 
@@ -142,7 +142,7 @@ class Resource(object):
         :param response: resource's response. This can be
            - `None`,
            - django's `HttpResponse`
-           - drest's `Response`
+           - devil's `Response`
            - dictionary (or list of dictionaries)
            - plaintext
         """
@@ -157,16 +157,16 @@ class Resource(object):
         self._add_resposne_headers(res, response)
         return res
 
-    def _add_resposne_headers(self, django_response, drest_response):
+    def _add_resposne_headers(self, django_response, devil_response):
         """ Add response headers.
 
-        Add HTTP headers from drest't response to django's response. 
+        Add HTTP headers from devil't response to django's response.
         """
 
         try:
-            headers = drest_response.headers
+            headers = devil_response.headers
         except AttributeError:
-            # ok, there was no drest_response
+            # ok, there was no devil_response
             pass
         else:
             for k, v in headers.items():
@@ -218,7 +218,7 @@ class Resource(object):
         """ Validate the response data.
 
         :param response: ``HttpResponse``
-        :param data: payload data. This implementation assumes 
+        :param data: payload data. This implementation assumes
                      dict or list of dicts.
         :raises: `HttpStatusCodeError` if data is not valid
         """
@@ -266,7 +266,7 @@ class Resource(object):
         todo: this should be more informative..
         """
 
-        logging.getLogger('drest').error('drest caught: ' + str(exc), exc_info=True)
+        logging.getLogger('devil').error('devil caught: ' + str(exc), exc_info=True)
 
         if settings.DEBUG:
             raise

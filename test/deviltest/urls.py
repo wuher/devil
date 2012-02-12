@@ -14,7 +14,7 @@ admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    url(r'^simple/', include('drestest.simple.urls')),
+    url(r'^simple/', include('deviltest.simple.urls')),
     # uncomment to enable admin:
     (r'^admin/', include(admin.site.urls)),
 )

@@ -10,12 +10,12 @@ from decimal import Decimal
 
 from django import forms
 
-from drest.resource import Resource
-from drest.http import Response
-from drest.auth import HttpBasic
-from drest.perm.acl import PermissionController
-from drest.mappers.jsonmapper import JsonMapper
-from drest.mappers.xmlmapper import XmlMapper
+from devil.resource import Resource
+from devil.http import Response
+from devil.auth import HttpBasic
+from devil.perm.acl import PermissionController
+from devil.mappers.jsonmapper import JsonMapper
+from devil.mappers.xmlmapper import XmlMapper
 from simple import representations, models
 from django.core.urlresolvers import reverse
 
@@ -56,7 +56,7 @@ class MyAnonResource(Resource):
 
 
 class MyRespResource(Resource):
-    """ Use drest Response """
+    """ Use devil Response """
 
     def get(self, request, *args, **kw):
         return Response(200, {'jedi': 'luke'})
@@ -65,7 +65,7 @@ class MyRespResource(Resource):
 class MyMapperResource(Resource):
     """ Define a custom datamapper """
 
-    from drest.datamapper import DataMapper
+    from devil.datamapper import DataMapper
     class ReverseMapper(DataMapper):
         def _parse_data(self, data, charset):
             return data[::-1]
@@ -135,7 +135,7 @@ class MyTextResource(Resource):
 
 
 class MyScandicResource(Resource):
-    from drest.datamapper import DataMapper
+    from devil.datamapper import DataMapper
 
     class AsciiMapper(DataMapper):
         charset='ascii'
@@ -219,8 +219,8 @@ class PersonResource(Resource):
     def post(self, data, request):
         data.save()
         return Response(
-            201, 
-            None, 
+            201,
+            None,
             {'Location': '%s/%s' % (reverse('validation'), data.instance.pk)})
 
 

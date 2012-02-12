@@ -11,18 +11,18 @@ from decimal import Decimal
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
-from drest import datamapper
-from drest import errors, http
-from drest.perm import management as syncdb
-from drest.resource import Resource
-from drest.datamapper import manager
-from drest.mappers.xmlmapper import XmlMapper
-from drest.mappers.jsonmapper import JsonMapper
+from devil import datamapper
+from devil import errors, http
+from devil.perm import management as syncdb
+from devil.resource import Resource
+from devil.datamapper import manager
+from devil.mappers.xmlmapper import XmlMapper
+from devil.mappers.jsonmapper import JsonMapper
 import urls as testurls
 
 
 # mute the log (enable when debugging)
-log = logging.getLogger('drest')
+log = logging.getLogger('devil')
 log.setLevel(logging.FATAL)
 
 
@@ -38,7 +38,7 @@ class FakeRequest(object):
             self.META['CONTENT_TYPE'] = content_type
 
 
-class DrestClient(Client):
+class DevilClient(Client):
     """ Adds HTTP Basic authentication to django's test client. """
 
     def __init__(self, username=None, password=None, *args, **kw):
@@ -56,19 +56,19 @@ class DrestClient(Client):
         return params
 
     def get(self, path, data={}, *args, **kw):
-        return super(DrestClient, self).get(
+        return super(DevilClient, self).get(
             path, data, *args, **(self._get_params(**kw)))
 
     def post(self, path, data={}, *args, **kw):
-        return super(DrestClient, self).post(
+        return super(DevilClient, self).post(
             path, data, *args, **(self._get_params(**kw)))
 
     def put(self, path, data={}, *args, **kw):
-        return super(DrestClient, self).put(
+        return super(DevilClient, self).put(
             path, data, *args, **(self._get_params(**kw)))
 
     def delete(self, path, data={}, *args, **kw):
-        return super(DrestClient, self).delete(
+        return super(DevilClient, self).delete(
             path, data, *args, **(self._get_params(**kw)))
 
 
@@ -81,10 +81,10 @@ class PermSyncDbTest(TestCase):
     def test_content_type(self):
         from django.contrib.contenttypes.models import ContentType
 
-        conttype = ContentType.objects.get(name='drest')
-        self.assertEquals(conttype.name, 'drest')
-        self.assertEquals(conttype.app_label, 'drest')
-        self.assertEquals(conttype.model, 'drest')
+        conttype = ContentType.objects.get(name='devil')
+        self.assertEquals(conttype.name, 'devil')
+        self.assertEquals(conttype.app_label, 'devil')
+        self.assertEquals(conttype.model, 'devil')
 
     def test_permissions(self):
         from django.contrib.auth.models import Permission
@@ -146,7 +146,7 @@ class PermTest(TestCase):
             )
 
         for test in tests:
-            client = DrestClient(username=test['user'], password=test['user'])
+            client = DevilClient(username=test['user'], password=test['user'])
             # if test['method'] in ('put', 'post'):
             #     response = getattr(client, test['method'])(
             #         '/simple/perm',
@@ -176,7 +176,7 @@ class AuthTest(TestCase):
             ('sith', 'sith', 200),
             )
         for username, password, result in tests:
-            client = DrestClient(username=username, password=password)
+            client = DevilClient(username=username, password=password)
             response = client.get('/simple/auth')
             self.assertEquals(response.status_code, result)
 
@@ -189,7 +189,7 @@ class AuthTest(TestCase):
             ('sith', 'sith', 200),
             )
         for username, password, result in tests:
-            client = DrestClient(username=username, password=password)
+            client = DevilClient(username=username, password=password)
             response = client.get('/simple/auth/anon')
             self.assertEquals(
                 response.status_code,

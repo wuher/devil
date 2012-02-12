@@ -30,7 +30,7 @@ class DataMapper(object):
         In derived classed, it is usually better idea to override
         ``_format_data()`` than this method.
 
-        :param response: drests's ``Response`` object or the data
+        :param response: devil's ``Response`` object or the data
                          itself. May also be ``None``.
         :return: django's ``HttpResponse``
         """
@@ -85,7 +85,7 @@ class DataMapper(object):
         return self._decode_data(data, charset) if data else u''
 
     def _prepare_response(self, response):
-        """ Coerce response to drest's Response
+        """ Coerce response to devil's Response
 
         :param response: either the response data or a ``Response`` object.
         :returns: ``Response`` object

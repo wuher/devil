@@ -13,7 +13,7 @@ from mappers.jsonmapper import JsonMapper
 
 
 def init_logging():
-    log = logging.getLogger('drest')
+    log = logging.getLogger('devil')
     if log.level == logging.NOTSET:
         log.setLevel(logging.WARN)
         handler = logging.StreamHandler(sys.stdout)
