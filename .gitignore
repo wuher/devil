@@ -1,3 +1,5 @@
+MANIFEST
+dist
 drest.db
 *.pyc
 \#*
