@@ -1,8 +1,6 @@
-**THIS IS A WORK IN PROGRESS**
-
 # Simple REST frameword for Django
 
-dRest aims to be simple to use REST framework for Django. dRest is
+Devil aims to be simple to use REST framework for Django. Devil is
 influenced by [piston][1].
 
 ## Key Characteristics
@@ -34,24 +32,44 @@ influenced by [piston][1].
 
 myresources.py:
 
-    from drest.resource import Resource
-    from drest.http import Response
-
+    from devil.resource import Resource
 
     class MyTestResource(Resource):
-        def get(self, request, *args, **kw):
+        def get(self, request):
             return {'jedi': 'luke'}
 
 urls.py:
 
-    from django.conf.urls.defaults import patterns, include, url
-    from drest.resource import Resource
+    from django.conf.urls.defaults import patterns, url
+    from devil.resource import Resource
     import myresources
 
     mytestresource = myresources.MyTestResource()
     urlpatterns = patterns('',
         url(r'^test', mytestresource),
     )
+
+curl:
+
+    curl http://localhost:8000/test&format=json
+
+    > GET /contact/?format=json HTTP/1.1
+    > User-Agent: curl/7.21.4 (universal-apple-darwin11.0) libcurl/7.21.4
+    > Host: localhost:8000
+    > Accept: */*
+    >
+    < HTTP/1.0 200 OK
+    < Date: Tue, 14 Feb 2012 09:35:02 GMT
+    < Server: WSGIServer/0.1 Python/2.7.1
+    < Content-Type: application/json; charset=utf-8
+    <
+        {
+            "jedi": "luke"
+        }
+
+
+## The Resource class
+
 
 
 ## License
