@@ -8,8 +8,8 @@
 
 import logging, sys
 import datamapper
-from mappers.xmlmapper import XmlMapper
-from mappers.jsonmapper import JsonMapper
+from devil.mappers.xmlmapper import XmlMapper
+from devil.mappers.jsonmapper import JsonMapper
 
 
 def init_logging():
