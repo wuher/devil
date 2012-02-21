@@ -68,8 +68,11 @@ curl:
         }
 
 
-## The Resource class
+## Content Negotiation
 
+does this work?
+
+![Selecting a formatter](doc/select-formatter.pdf "Selecting a formatter")
 
 
 ## License
