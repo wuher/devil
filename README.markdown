@@ -72,7 +72,7 @@ curl:
 
 does this work?
 
-![Selecting a formatter](doc/select-formatter.pdf "Selecting a formatter")
+![Selecting a formatter](https://github.com/wuher/devil/raw/master/doc/select-formatter.pdf "Selecting a formatter")
 
 
 ## License
