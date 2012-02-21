@@ -28,6 +28,13 @@ influenced by [piston][1].
     - Automatic documentation generation (_Not implemented yet_)
 
 
+## Installation
+
+    pip install devil
+
+Source code can be found from [GitGub][7]
+
+
 ## Example
 
 myresources.py:
@@ -110,7 +117,6 @@ See the [docstrings][6] in the `DataMapper` class and the [example
 resources][4] in tests for instructions on how to implement your own mappers.
 
 
-
 ## License
 
 
@@ -144,3 +150,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [4]:https://github.com/wuher/devil/blob/master/test/deviltest/simple/resources.py
 [5]:https://github.com/wuher/devil/blob/master/devil/mappers/xmlmapper.py
 [6]:https://github.com/wuher/devil/blob/master/devil/datamapper.py
+[7]:https://github.com/wuher/devil
