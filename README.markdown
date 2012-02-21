@@ -70,9 +70,45 @@ curl:
 
 ## Content Negotiation
 
-does this work?
+Devil uses the terms `parser` and `formatter` for data decoding and encoding
+respectively. They are collectively referred to as data `mappers`. By default,
+devil tries to parse all data that comes in with `PUT` and `POST` requests.
+Similarly, devil automatically formats all outgoing data when it is present.
+Appropriate mapper can be defined in one of the following places (note that this list is not sorted by precedence):
+
+  - In the URL:
+    - either with `?format=json` 
+    - or with `.json` suffix
+  - HTTP [Accept][2] header
+  - HTTP [Content-Type][3] header (meaningful only for `PUT`s and `POST`s)
+  - A resource may define its own mapper which will always be used
+     - define `mapper` in your derived `Resource` class (see [examples][4])
+  - A resource may define a default mapper that will be used if the client
+    specifies no content type
+     - define `default_mapper` in your derived `Resource` class (see [examples][4])
+  - Application may define one system wide default mapper by registering a 
+    mapper with content type `*/*`
+
+If the client specifies a content type that is not supported, devil responds
+with `406 Not Acceptable`. Out of the box, devil supports `plain/text`,
+`application/json` and `text/xml`. You can register more mappers for your
+application of course. It should be noted that the built-in XML mapper has
+some restrictions (see the [docstring][5]).
+
+Following picture formally defines how a correct formatter is chosen for
+encoding the outgoing data:
 
 ![Selecting a formatter](https://github.com/wuher/devil/raw/master/doc/select-formatter.pdf "Selecting a formatter")
+
+
+Likewise, the next picture defines how a correct parser is chosen for the
+incoming (via `PUT` or `POST`) data:
+
+![Selecting a parser](https://github.com/wuher/devil/raw/master/doc/select-parser.pdf "Selecting a parser")
+
+See the [docstrings][6] in the `DataMapper` class and the [example
+resources][4] in tests for instructions on how to implement your own mappers.
+
 
 
 ## License
@@ -103,4 +139,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 [1]:https://bitbucket.org/jespern/django-piston/wiki/Home
-
+[2]:http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
+[3]:http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17
+[4]:https://github.com/wuher/devil/blob/master/test/deviltest/simple/resources.py
+[5]:https://github.com/wuher/devil/blob/master/devil/mappers/xmlmapper.py
+[6]:https://github.com/wuher/devil/blob/master/devil/datamapper.py
