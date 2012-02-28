@@ -17,7 +17,8 @@ class JsonMapper(DataMapper):
     def __init__(self, use_decimal=False):
         """ Initialize JSON mapper with appropriate use of numbers.
 
-        :param use_decimal: ``True`` if numbers should be converted into ``Decimal``s
+        :param use_decimal: ``True`` if numbers should be converted 
+                            into ``Decimal``s.
         """
 
         self.use_decimal = use_decimal
