@@ -75,7 +75,7 @@ curl:
         }
 
 
-## Content Negotiation
+## Content Type Negotiation
 
 Devil uses the terms `parser` and `formatter` for data decoding and encoding
 respectively. They are collectively referred to as data `mappers`. By default,
