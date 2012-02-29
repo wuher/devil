@@ -37,7 +37,7 @@ Source code can be found from [GitGub][7]
 
 ## Example
 
-myresources.py:
+resources.py:
 
     from devil.resource import Resource
 
@@ -49,9 +49,9 @@ urls.py:
 
     from django.conf.urls.defaults import patterns, url
     from devil.resource import Resource
-    import myresources
+    import resources
 
-    mytestresource = myresources.MyTestResource()
+    mytestresource = resources.MyTestResource()
     urlpatterns = patterns('',
         url(r'^test', mytestresource),
     )
@@ -75,16 +75,63 @@ curl:
         }
 
 
+## URL Dispatching
+
+The relationship between URLs and RESTful resources is _one to many_. That is,
+one resource may have several URLs mapped into it. Conversely, one URL is
+always mapped into a single resource. Devil uses Django's built in [URL
+dispatching][8] to define these mappings. If you are familiar with Django's
+terms and concepts the resources in Devil become the _views_ of Django.
+
+Say you define your resources in a module called `resources`. Then in your
+`urls.py` file you would instantiate and map your resources to URLs, like so:
+
+
+    user_resource = resources.UserResource()
+
+    urlpatterns = patterns('',
+        url(r'/user', user_resource),
+    )
+
+And to define aliases, you can just add new mappings to the same resource:
+
+    urlpatterns = patterns('',
+        url(r'/user', user_resource),
+        url(r'/jedi', user_resource),
+        url(r'/sith', user_resource),
+    )
+
+You can use Django's built-in regexp features like named parameters:
+
+    urlpatterns = patterns('',
+        url(r'/user(?P<id>\d{1,7})?', user_resource),
+    )
+
+In this case, the `id` property would be available in the resource method:
+
+    class UserResource(Resource):
+        def get(self, request, id, *args, **kw):
+            print id
+
+or
+
+    class UserResource(Resource):
+        def get(self, request, *args, **kw):
+            print kw['id']
+
+
+
 ## Content Type Negotiation
 
 Devil uses the terms `parser` and `formatter` for data decoding and encoding
 respectively. They are collectively referred to as data `mappers`. By default,
 devil tries to parse all data that comes in with `PUT` and `POST` requests.
 Similarly, devil automatically formats all outgoing data when it is present.
-Appropriate mapper can be defined in one of the following places (note that this list is not sorted by precedence):
+Appropriate mapper can be defined in one of the following places (note that
+this list is not sorted by precedence):
 
   - In the URL:
-    - either with `?format=json` 
+    - either with `?format=json`
     - or with `.json` suffix
   - HTTP [Accept][2] header
   - HTTP [Content-Type][3] header (meaningful only for `PUT`s and `POST`s)
@@ -92,8 +139,9 @@ Appropriate mapper can be defined in one of the following places (note that this
      - define `mapper` in your derived `Resource` class (see [examples][4])
   - A resource may define a default mapper that will be used if the client
     specifies no content type
-     - define `default_mapper` in your derived `Resource` class (see [examples][4])
-  - Application may define one system wide default mapper by registering a 
+     - define `default_mapper` in your derived `Resource`
+       class (see [examples][4])
+  - Application may define one system wide default mapper by registering a
     mapper with content type `*/*`
 
 If the client specifies a content type that is not supported, devil responds
@@ -106,7 +154,6 @@ Following picture formally defines how a correct formatter is chosen for
 encoding the outgoing data:
 
 ![Selecting a formatter](https://github.com/wuher/devil/raw/master/doc/select-formatter.pdf "Selecting a formatter")
-
 
 Likewise, the next picture defines how a correct parser is chosen for the
 incoming (via `PUT` or `POST`) data:
@@ -151,3 +198,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [5]:https://github.com/wuher/devil/blob/master/devil/mappers/xmlmapper.py
 [6]:https://github.com/wuher/devil/blob/master/devil/datamapper.py
 [7]:https://github.com/wuher/devil
+[8]:https://docs.djangoproject.com/en/dev/topics/http/urls/
