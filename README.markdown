@@ -32,10 +32,10 @@ influenced by [piston][1].
 
     pip install devil
 
-Source code can be found from [GitGub][7]
+Source code can be found at [GitGub][7]
 
 
-## Example
+## Quick Example
 
 resources.py:
 
@@ -58,7 +58,7 @@ urls.py:
 
 curl:
 
-    curl http://localhost:8000/test&format=json
+    curl http://localhost:8000/test?format=json
 
     > GET /contact/?format=json HTTP/1.1
     > User-Agent: curl/7.21.4 (universal-apple-darwin11.0) libcurl/7.21.4
@@ -101,7 +101,7 @@ urls.py:
         url(r'contact', contacts_resource),
     )
 
-in console say (or you can use a browser):
+start the server and in the console say (or you can use a browser):
 
     $ python manage.py runserver
     $ curl http://localhost:8000/contact?format=json
@@ -189,7 +189,8 @@ this list is not sorted by precedence):
     - or with `.json` suffix
   - HTTP [Accept][2] header
   - HTTP [Content-Type][3] header (meaningful only for `PUT`s and `POST`s)
-  - A resource may define its own mapper which will always be used
+  - A resource may define its own mapper which will take precedence over
+    anything else
      - define `mapper` in your derived `Resource` class (see [examples][4])
   - A resource may define a default mapper that will be used if the client
     specifies no content type
@@ -216,6 +217,70 @@ incoming (via `PUT` or `POST`) data:
 
 See the [docstrings][6] in the `DataMapper` class and the [example
 resources][4] in tests for instructions on how to implement your own mappers.
+
+
+## Dealing with Data
+
+Once the appropriate data mapper has been chosen, the devil can perform
+decoding for the incoming data and encoding for the outgoing data. For
+example, if a json mapper is chosen your `post` and `get` functions would look
+something like this (in terms of data passing):
+
+    $ curl http://localhost:8000/contact -X POST -d '{"name": "Darth Maul", "age": 24}' -H 'Content-Type: application/json'
+
+    def post(self, data, request):
+        # data is available as a python dict in the data parameter
+        print data['name']       # Darth Maul
+        print type(data['age'])  # <type 'int'>
+
+
+    $ curl http://localhost:8000/contact/1 -X GET -H 'Accept: application/json'
+
+    def get(self, request):
+        # you can return a python dictionary
+        return {
+            'name': 'Yoda',
+            '876',
+        }
+
+Devil's built-in json and xml mappers will convert to and from python
+dictionaries and lists. However, the built-in text (`text/plain`) mapper will
+only convert between strings and unicode objects.
+
+
+## HTTP Responses
+
+A resource may return any of the following:
+
+  - dictionary
+  - list
+  - string
+  - `None`
+  - Devil's `http.Response`
+  - Django's `HttpResponse`
+
+If the resource returns Django's `HttpResponse`, devil doesn't touch the
+return value at all but just passes it on to the client. If the return type is
+any of the other four, devil tries to encode the data using the appropriate
+mapper. Furthermore, devil's `Response` object provides a way for the resource
+to include HTTP response code and headers along with the data. Devil will
+automatically use response code `200 OK` in cases where the response code
+isn't explicitly defined by the resource. Also, devil will automatically add
+`Content-Type` HTTP header based on the used data mapper.
+
+Error situations may be handled using exceptions defined in `devil.errors`
+package. So whenever there's a situation that you want to return a certain
+response code, you can raise a `HttpStatusCodeError` and devil will
+catch catch it and turn it into appropriate HTTP response object.
+
+    from devil import errors
+    def post(self, data, request):
+        if data['age'] > 50:
+            # too old
+            raise errors.BadRequest("you're too old")
+
+In the example, the client would receive `400 BAD REQUEST` with the string
+`"you're too old"` in the body whenever the age is above 50.
 
 
 ## License
