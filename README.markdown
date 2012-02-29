@@ -75,10 +75,46 @@ curl:
         }
 
 
+## Step by Step Instructions
+
+    $ pip install devil
+    $ django-admin.py startproject phone_book
+    $ cd phone_book
+    $ python manage.py startapp contacts
+
+contacts/resources.py:
+
+    from devil.resource import Resource
+
+    class Contact(Resource):
+        def get(self, request, *args, **kw):
+            return {'name': 'Luke Skywalker'}
+
+urls.py:
+
+    from django.conf.urls.defaults import patterns, url
+    from contacts import resources
+
+    contacts_resource = resources.Contact()
+
+    urlpatterns = patterns('',
+        url(r'contact', contacts_resource),
+    )
+
+in console say (or you can use a browser):
+
+    $ python manage.py runserver
+    $ curl http://localhost:8000/contact?format=json
+
+or if you want to be more HTTP friendly:
+
+    $ curl http://localhost:8000/contact -H 'Accept: application/json'
+
+
 ## URL Dispatching
 
 The relationship between URLs and RESTful resources is _one to many_. That is,
-one resource may have several URLs mapped into it. Conversely, one URL is
+one resource may have several URLs mapped to it. Conversely, one URL is
 always mapped into a single resource. Devil uses Django's built in [URL
 dispatching][8] to define these mappings. If you are familiar with Django's
 terms and concepts the resources in Devil become the _views_ of Django.
@@ -119,6 +155,24 @@ or
         def get(self, request, *args, **kw):
             print kw['id']
 
+
+## Method Dispatching
+
+Devil maps the HTTP request methods into functions of the resource directly.
+So, if Devil receives an HTTP POST request, it will try and find an instance
+method called `post` in the resource and invoke it. If the resource doesn't
+define `post` method, Devil will automatically return `405 Mehod Not Allowed`
+to the client. The signature for the method for `PUT` and `POST` requests is:
+
+    def post(self, data, request):
+
+and for others methods:
+
+    def get(self, request):
+
+so, PUTs and POSTs will have additional `data` attribute that contains the
+(possibly parsed) content body of the request. Also, bear in mind that
+function parameters may also include named parameters from url mappings.
 
 
 ## Content Type Negotiation
