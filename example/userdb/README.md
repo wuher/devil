@@ -46,6 +46,7 @@ modifications were made:
   1. Add datababase configuration and our applicationa and strip unnecessary
   applicationa and middlewares from `settings.py`
 
+
       DATABASES = {
           'default': {
               'ENGINE': 'django.db.backends.sqlite3',
@@ -64,6 +65,7 @@ modifications were made:
       INSTALLED_APPS = (
           'userdb.api',
       )
+
 
   2. Implement models. You can see the file `api/models.py` for details.
   3. Implement the user resource. You can see the file `api/resources.py`
