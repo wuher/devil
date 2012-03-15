@@ -111,6 +111,11 @@ or if you want to be more HTTP friendly:
     $ curl http://localhost:8000/contact -H 'Accept: application/json'
 
 
+A more complete example can be found under `examples/userdb`. See the
+`README.md` in that directory for instructions on running the example and how
+to examine the code.
+
+
 ## URL Dispatching
 
 The relationship between URLs and RESTful resources is _one to many_. That is,
@@ -187,7 +192,8 @@ this list is not sorted by precedence):
   - In the URL:
     - either with `?format=json`
     - or with `.json` suffix
-  - HTTP [Accept][2] header
+  - HTTP [Accept][2] header. The Accept header supports the full format,
+    as in: `Accept: audio/*; q=0.2, audio/basic`
   - HTTP [Content-Type][3] header (meaningful only for `PUT`s and `POST`s)
   - A resource may define its own mapper which will take precedence over
     anything else
@@ -250,7 +256,8 @@ only convert between strings and unicode objects.
 
 ## HTTP Responses
 
-A resource may return any of the following:
+A resource (that is, any of the post/get/put/delete methods) may return following
+values:
 
   - dictionary
   - list
@@ -261,7 +268,7 @@ A resource may return any of the following:
 
 If the resource returns Django's `HttpResponse`, devil doesn't touch the
 return value at all but just passes it on to the client. If the return type is
-any of the other four, devil tries to encode the data using the appropriate
+any of the other five, devil tries to encode the data using the appropriate
 mapper. Furthermore, devil's `Response` object provides a way for the resource
 to include HTTP response code and headers along with the data. Devil will
 automatically use response code `200 OK` in cases where the response code
@@ -271,7 +278,7 @@ isn't explicitly defined by the resource. Also, devil will automatically add
 Error situations may be handled using exceptions defined in `devil.errors`
 package. So whenever there's a situation that you want to return a certain
 response code, you can raise a `HttpStatusCodeError` and devil will
-catch catch it and turn it into appropriate HTTP response object.
+catch it and turn it into appropriate HTTP response object.
 
     from devil import errors
     def post(self, data, request):
