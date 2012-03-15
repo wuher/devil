@@ -27,7 +27,7 @@ You can now test the api by issuing HTTP requests to above mentioned URLs. For
 example:
 
     $ curl http://localhost:8000/user
-    $ url -v http://localhost:8000/user/ -X POST -d '{"name": "Luke Skywalker", "age": 44}' -H 'Content-Type: application/json'
+    $ curl -v http://localhost:8000/user/ -X POST -d '{"name": "Luke Skywalker", "age": 44}' -H 'Content-Type: application/json'
     $ curl http://localhost:8000/user/1
     $ curl -v http://localhost:8000/user/1 -X PUT -d '{"name": "Luke Skywalker", "age": 33}' -H 'Content-Type: application/json'
     $ curl http://localhost:8000/user/1
