@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='devil',
-    version='0.4',
+    version='0.5',
     author='Janne Kuuskeri (wuher)',
     author_email='janne.kuuskeri@gmail.com',
     url='https://github.com/wuher/devil/',
