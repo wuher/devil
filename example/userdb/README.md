@@ -43,30 +43,10 @@ The project was created as any other Django project by saying `django-admin
 startproject userdb` and `python manage.py startapp api`. After this following
 modifications were made:
 
-  1. Add datababase configuration and our applicationa and strip unnecessary
-  applicationa and middlewares from `settings.py`
-
-
-      DATABASES = {
-          'default': {
-              'ENGINE': 'django.db.backends.sqlite3',
-              'NAME': 'userdata.db',
-              'USER': '',
-              'PASSWORD': '',
-              'HOST': '',
-              'PORT': '',
-          }
-      }
-
-      MIDDLEWARE_CLASSES = (
-          'django.middleware.common.CommonMiddleware',
-      )
-
-      INSTALLED_APPS = (
-          'userdb.api',
-      )
-
-
+  1. Add datababase configuration, our application and strip
+  unnecessary applicationa and middlewares from `settings.py`. See
+  following configuration keys in the settings file for details:
+  `DATABASES`, `MIDDLEWARE_CLASSES`, `INSTALLED_APPS`.
   2. Implement models. You can see the file `api/models.py` for details.
   3. Implement the user resource. You can see the file `api/resources.py`
   for details.
