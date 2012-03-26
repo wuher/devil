@@ -407,15 +407,15 @@ Django's `auth_permission` table. The format for the permission name is
 `prefix_resourcename_method`. The `prefix` is "resource", the `resourcename`
 is whatever your resource class´ `name()` function returns and `method` is the
 request method (i.e. "post", "get", "put" or "delete"). If you haven't
-overridden then `name()` function in your resource class, it returns the name
+overridden the `name()` function in your resource class, it returns the name
 of the class with CamelCase converted to slashes. So, in our example running
 the `syncdb` would generate following four permissions into the database:
 
 
-  - `resource_my/resource_post`
-  - `resource_my/resource_get`
-  - `resource_my/resource_put`
-  - `resource_my/resource_delete`
+  - "`resource_my/resource_post`"
+  - "`resource_my/resource_get`"
+  - "`resource_my/resource_put`"
+  - "`resource_my/resource_delete`"
 
 
 Now, you are ready to assign these permissions to your users or groups by
