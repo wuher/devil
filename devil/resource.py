@@ -6,11 +6,12 @@
 #
 
 
-import types
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.conf import settings
-import errors, datamapper, util
+import errors
+import datamapper
+import util
 from http import codes
 import logging
 
@@ -83,11 +84,10 @@ class Resource(object):
     default_mapper = None
     mapper = None
 
-
     def __call__(self, request, *args, **kw):
         """ Entry point for HTTP requests. """
 
-        coerce_put_post(request) #django-fix
+        coerce_put_post(request)  # django-fix
         try:
             return self.__handle_request(request, *args, **kw)
         except errors.HttpStatusCodeError, exc:
@@ -306,7 +306,7 @@ class Resource(object):
             """ Make sure that request object has user property.
 
             If `request.user` is not present or is `None`, it is
-            created and initialized with AnonymousUser.
+            created and initialized with `AnonymousUser`.
             """
 
             try:

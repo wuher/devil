@@ -42,9 +42,11 @@ class Unauthorized(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.UNAUTHORIZED, *args, **kw)
 
+
 class Forbidden(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.FORBIDDEN, *args, **kw)
+
 
 class NotFound(HttpStatusCodeError):
     def __init__(self, *args, **kw):
@@ -59,6 +61,7 @@ class NotAcceptable(HttpStatusCodeError):
 class MethodNotAllowed(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.METHOD_NOT_ALLOWED, *args, **kw)
+
 
 class InternalServerError(HttpStatusCodeError):
     def __init__(self, *args, **kw):

@@ -21,6 +21,7 @@ def camelcase_to_slash(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1/\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1/\2', s1).lower()
 
+
 def strip_charset(content_type):
     """ Strip charset from the content type string.
 
@@ -29,6 +30,7 @@ def strip_charset(content_type):
     """
 
     return content_type.split(';')[0]
+
 
 def extract_charset(content_type):
     """ Extract charset info from content type.
