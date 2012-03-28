@@ -93,7 +93,7 @@ class Resource(object):
         except errors.HttpStatusCodeError, exc:
             return self._get_error_response(exc)
         except Exception, exc:
-            return self._get_unknown_error_response(exc)
+            return self._get_unknown_error_response(request, exc)
 
     def name(self):
         """ Return resource's name.
@@ -260,7 +260,7 @@ class Resource(object):
 
         raise errors.InternalServerError()
 
-    def _get_unknown_error_response(self, exc):
+    def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
 
         todo: this should be more informative..
