@@ -7,7 +7,6 @@
 
 
 import re
-from decimal import Decimal, InvalidOperation
 from django.utils.encoding import smart_unicode, smart_str
 from django.http import HttpResponse
 import errors

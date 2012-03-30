@@ -136,13 +136,13 @@ class Resource(object):
     def _format_response(self, request, response):
         """ Format response.
 
-        If the response is `HttpResponse`, does nothing. Otherwise,
+        If the response is ``HttpResponse``, does nothing. Otherwise,
         formats the response using appropriate mapper.
 
         :param response: resource's response. This can be
-           - `None`,
-           - django's `HttpResponse`
-           - devil's `Response`
+           - ``None``,
+           - django's ``HttpResponse``
+           - devil's ``Response``
            - dictionary (or list of dictionaries)
            - plaintext
         """
@@ -160,7 +160,7 @@ class Resource(object):
     def _add_resposne_headers(self, django_response, devil_response):
         """ Add response headers.
 
-        Add HTTP headers from devil't response to django's response.
+        Add HTTP headers from devil's response to django's response.
         """
 
         try:

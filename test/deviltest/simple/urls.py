@@ -6,8 +6,7 @@
 #
 
 
-from django.conf.urls.defaults import patterns, include, url
-from devil.resource import Resource
+from django.conf.urls.defaults import patterns, url
 import resources
 
 
