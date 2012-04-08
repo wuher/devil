@@ -16,6 +16,7 @@ from devil.auth import HttpBasic
 from devil.perm.acl import PermissionController
 from devil.mappers.jsonmapper import JsonMapper
 from devil.mappers.xmlmapper import XmlMapper
+from devil import Representation
 from simple import representations, models
 from django.core.urlresolvers import reverse
 
@@ -46,6 +47,7 @@ class MyAuthResource(Resource):
     def get(self, request, *args, **kw):
         return 'Hello, Auth!'
 
+
 class MyAnonResource(Resource):
     """ Anonymous resource """
 
@@ -66,6 +68,7 @@ class MyMapperResource(Resource):
     """ Define a custom datamapper """
 
     from devil.datamapper import DataMapper
+
     class ReverseMapper(DataMapper):
         def _parse_data(self, data, charset):
             return data[::-1]
@@ -138,7 +141,7 @@ class MyScandicResource(Resource):
     from devil.datamapper import DataMapper
 
     class AsciiMapper(DataMapper):
-        charset='ascii'
+        charset = 'ascii'
 
     mapper = AsciiMapper()
 
@@ -148,7 +151,7 @@ class MyScandicResource(Resource):
 
 class MyScandicJsonResource(Resource):
     class JsonAsciiMapper(JsonMapper):
-        charset='ascii'
+        charset = 'ascii'
 
     mapper = JsonAsciiMapper()
 
@@ -159,10 +162,10 @@ class MyScandicJsonResource(Resource):
 class MyValidationResource(Resource):
     """ Define representation for validtiaon """
 
-    class Representation(forms.Form):
+    class MyRepresentation(Representation):
         name = forms.CharField(max_length=5)
 
-    representation = Representation
+    representation = MyRepresentation()
 
     def put(self, data, request):
         self.mydata = data
@@ -209,7 +212,7 @@ class MyDefaultMapperResource_2(Resource):
 class PersonResource(Resource):
     """ Person resource. """
     default_mapper = JsonMapper()
-    representation = representations.Person
+    representation = representations.Person()
 
     def get(self, request):
         people = models.Person.objects.all()
@@ -217,11 +220,12 @@ class PersonResource(Resource):
                 for person in people]
 
     def post(self, data, request):
-        data.save()
+        person = self.representation.__class__(data)
+        person.save()
         return Response(
             201,
             None,
-            {'Location': '%s/%s' % (reverse('validation'), data.instance.pk)})
+            {'Location': '%s/%s' % (reverse('validation'), person.instance.pk)})
 
 
 #

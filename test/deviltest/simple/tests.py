@@ -6,18 +6,19 @@
 #
 
 
-import json, base64, logging
+import json
+import base64
+import logging
 from decimal import Decimal
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.client import Client
 from devil import datamapper
 from devil import errors, http
-from devil.perm import management as syncdb
-from devil.resource import Resource
+from devil import Resource
 from devil.datamapper import manager
-from devil.mappers.xmlmapper import XmlMapper
-from devil.mappers.jsonmapper import JsonMapper
+from devil.mappers import XmlMapper
+from devil.mappers import JsonMapper
 import urls as testurls
 
 
@@ -673,9 +674,7 @@ class ValidationTest(TestCase):
             '/simple/valid?format=json',
             '{"name": "Luke", "extra": "data"}',
             'application/json')
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
-        self.assertEquals(response.content, '')
+        self.assertEquals(response.status_code, 400)
 
     def test_parse_validation_fail(self):
         client = Client()
@@ -694,7 +693,7 @@ class ValidationTest(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response['Content-Type'], 'application/json; charset=utf-8')
         self.assertEquals(response.content, '')
-        self.assertEquals(map(lambda x : x.cleaned_data, testurls.validationresource.mydata),
+        self.assertEquals(testurls.validationresource.mydata,
                         [{"name": "Luke"}, {"name": "Shmi"}])
 
     def test_format_validation_pass(self):
@@ -915,6 +914,7 @@ class RepresentationToModelTests(TestCase):
     def test_basic_post_get(self):
 
         person = {
+            u'id': 1,
             u'name': u'Luke',
             u'age': 22
             }

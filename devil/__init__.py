@@ -12,6 +12,15 @@ from devil.mappers.xmlmapper import XmlMapper
 from devil.mappers.jsonmapper import JsonMapper
 
 
+from devil.resource import Resource
+from devil.representation import Representation
+
+__all__ = (
+    Resource,
+    Representation,
+    )
+
+
 def init_logging():
     log = logging.getLogger('devil')
     if log.level == logging.NOTSET:
@@ -20,6 +29,7 @@ def init_logging():
         handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s %(name)s %(message)s'))
         log.addHandler(handler)
+
 
 def register_mappers():
     textmapper = datamapper.DataMapper()

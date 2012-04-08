@@ -7,6 +7,7 @@
 
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.conf import settings
 import errors
@@ -81,6 +82,7 @@ class Resource(object):
     allow_anonymous = True
     authentication = None
     representation = None
+    partial_representation = None
     default_mapper = None
     mapper = None
 
@@ -187,6 +189,15 @@ class Resource(object):
         """ Execute appropriate parser. """
         return datamapper.parse(data, request, self)
 
+    def _get_input_validator(self, request):
+        method = request.method.upper()
+        if method != 'POST':
+            return self.representation
+        elif self.partial_representation:
+            return self.partial_representation
+        else:
+            return self.representation
+
     def _validate_input_data(self, data, request):
         """ Validate input data.
 
@@ -199,20 +210,19 @@ class Resource(object):
         :raises: HttpStatusCodeError if data is not valid
         """
 
+        validator = self._get_input_validator(request)
+
         # when not to validate...
-        if not self._is_data_method(request) or not self.representation:
+        if not self._is_data_method(request) or not validator:
             return data
 
-        def do_validation(item):
-            form = self.representation(item)
-            if not form.is_valid():
-                self._invalid_input_data(data, form)
-            return form
-
-        if isinstance(data, (list, tuple)):
-            return map(do_validation, data)
-        else:
-            return do_validation(data)
+        try:
+            if isinstance(data, (list, tuple)):
+                return map(validator.validate, data)
+            else:
+                return validator.validate(data)
+        except ValidationError, exc:
+            self._input_validation_failed(exc, data, request)
 
     def _validate_output_data(self, data, request, response):
         """ Validate the response data.
@@ -223,24 +233,23 @@ class Resource(object):
         :raises: `HttpStatusCodeError` if data is not valid
         """
 
+        validator = self.representation
+
         # when not to validate...
         if response.status_code is not 200 or \
-            not self.representation or \
+            not validator or \
             not data:
             return
 
-        def do_validation(item):
-            form = self.representation(item)
-            if not form.is_valid():
-                self._invalid_output_data(data, form)
-            return form
+        try:
+            if isinstance(data, (list, tuple)):
+                map(validator.validate, data)
+            else:
+                validator.validate(data)
+        except ValidationError, exc:
+            self._output_validation_failed(exc, data, request)
 
-        if isinstance(data, (list, tuple)):
-            map(do_validation, data)
-        else:
-            do_validation(data)
-
-    def _invalid_input_data(self, data, form):
+    def _input_validation_failed(self, error, data, request):
         """ Always raises HttpStatusCodeError.
 
         Override to raise different status code when request data
@@ -249,16 +258,16 @@ class Resource(object):
         todo: should format the content using the datamapper
         """
 
-        raise errors.BadRequest(repr(form.errors))
+        raise errors.BadRequest(str(error))
 
-    def _invalid_output_data(self, data, form):
+    def _output_validation_failed(self, error, data, request):
         """ Always raises HttpStatusCodeError.
 
         Override to raise different status code when response data
         doesn't pass validation.
         """
 
-        raise errors.InternalServerError()
+        raise errors.InternalServerError(str(error))
 
     def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
