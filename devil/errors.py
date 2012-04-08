@@ -32,6 +32,9 @@ class HttpStatusCodeError(Exception):
         except TypeError:
             return mycode is code
 
+    def __str__(self):
+        return 'HTTP error %d: %s' % (self.get_code_num(), self.content)
+
 
 class BadRequest(HttpStatusCodeError):
     def __init__(self, *args, **kw):
