@@ -26,6 +26,8 @@ validationresource = resources.MyValidationResource()
 scandicjsonresource = resources.MyScandicJsonResource()
 defaulttxtmapperresource = resources.MyDefaultMapperResource_1()
 defaultobjmapperresource = resources.MyDefaultMapperResource_2()
+factoryresource = resources.FactoryResource()
+
 
 acl_resources = (
     dictresource,
@@ -43,6 +45,7 @@ urlpatterns = patterns('',
     url(r'^person', personresource),
     url(r'^auth/anon', anonresource),
     url(r'^valid', validationresource, name='validation'),
+    url(r'^factory', factoryresource),
     url(r'^mapper/dict', dictresource),
     url(r'^mapper/text', textresource),
     url(r'^mapper/resp', respresource),

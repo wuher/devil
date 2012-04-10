@@ -201,6 +201,34 @@ class MyDefaultMapperResource_1(Resource):
         return {'key': 'löyhkä'}
 
 
+class PersonSpec(Representation):
+    age = forms.IntegerField()
+    name = forms.CharField()
+
+
+class Person(object):
+    pass
+
+
+class PersonFactory(object):
+    def create(self, data, spec=PersonSpec()):
+        person = Person()
+        person.age = data['age']
+        person.name = data['name']
+        return person
+
+
+class FactoryResource(Resource):
+    representation = PersonSpec()
+    factory = PersonFactory()
+
+    def put(self, person, request):
+        self.put_data = person
+
+    def post(self, person, request):
+        self.post_data = person
+
+
 class MyDefaultMapperResource_2(Resource):
     """ Define default mapper. """
     default_mapper = JsonMapper()

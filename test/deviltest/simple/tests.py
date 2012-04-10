@@ -932,5 +932,40 @@ class RepresentationToModelTests(TestCase):
         person['id'] = 1
         self.assertEquals(json.loads(response.content), [person])
 
+
+class FactoryTests(TestCase):
+
+    def test_factory_put(self):
+        from resources import Person
+
+        persondata = {
+            'age': 35,
+            'name': 'jedi',
+        }
+
+        client = Client()
+        response = client.put('/simple/factory', json.dumps(persondata), 'application/json')
+        self.assertEquals(response.status_code, 200)
+        person = testurls.factoryresource.put_data
+        self.assertTrue(isinstance(person, Person))
+        self.assertEquals(35, person.age)
+        self.assertEquals('jedi', person.name)
+
+    def test_factory_post(self):
+        from resources import Person
+
+        persondata = {
+            'age': 35,
+            'name': 'jedi',
+        }
+
+        client = Client()
+        response = client.post('/simple/factory', json.dumps(persondata), 'application/json')
+        self.assertEquals(response.status_code, 200)
+        person = testurls.factoryresource.post_data
+        self.assertTrue(isinstance(person, Person))
+        self.assertEquals(35, person.age)
+        self.assertEquals('jedi', person.name)
+
 #
 # tests.py ends here

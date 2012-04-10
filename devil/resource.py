@@ -83,6 +83,7 @@ class Resource(object):
     authentication = None
     representation = None
     partial_representation = None
+    factory = None
     default_mapper = None
     mapper = None
 
@@ -123,6 +124,7 @@ class Resource(object):
         method = self._get_method(request)
         data = self._get_input_data(request)
         data = self._validate_input_data(data, request)
+        data = self._create_object(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
         formatted_response = self._format_response(request, response)
         self._validate_output_data(response, request, formatted_response)
@@ -268,6 +270,21 @@ class Resource(object):
         """
 
         raise errors.InternalServerError(str(error))
+
+    def _create_object(self, data, request):
+        """ Create a python object from the given data.
+
+        This will use ``self.factory`` object's ``create()`` function to
+        create the data.
+
+        If no factory is defined, this will simply return the same data
+        that was given.
+        """
+
+        if self._is_data_method(request) and self.factory:
+            return self.factory.create(data, self.representation)
+        else:
+            return data
 
     def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
