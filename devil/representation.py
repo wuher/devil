@@ -11,7 +11,33 @@ from django.core.exceptions import ValidationError
 
 
 class Representation(forms.Form):
+    """ Base class for Representations.
+
+    Resrouces that want to have automatic data validation may subclass
+    this class and define the fields they need. For example::
+
+        class Person(Representation):
+            name = forms.CharField(max_length=300)
+            age = forms.IntegerField()
+
+    This implementation is based on Django's forms and you should see that
+    documentation for details on various fields.
+
+    It should be noted that it is not mandatory to derive your validator
+    from this class as long as it implements the ``validate()`` function.
+    Moreover, your implementation does not have to depend on Django's forms
+    at all.
+    """
+
     def validate(self, data):
+        """ Validate the data.
+
+        :returns: validated data. This can be the same data that was given
+                  or it can be "cleaned". This implementation uses Django's
+                  forms' ``cleaned_data`` property.
+        :raises: ValidationError if validation fails.
+        """
+
         spec = self.__class__(data)
         if not spec.is_valid():
             raise ValidationError(spec.errors)
