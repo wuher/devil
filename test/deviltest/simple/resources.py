@@ -217,6 +217,13 @@ class PersonFactory(object):
         person.name = data['name']
         return person
 
+    def serialize(self, person, spec=PersonSpec()):
+        person.name = person.name.capitalize()
+        return {
+            'name': person.name,
+            'age': person.age,
+            }
+
 
 class FactoryResource(Resource):
     representation = PersonSpec()
@@ -227,6 +234,7 @@ class FactoryResource(Resource):
 
     def post(self, person, request):
         self.post_data = person
+        return person
 
 
 class MyDefaultMapperResource_2(Resource):

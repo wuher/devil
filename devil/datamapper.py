@@ -32,6 +32,9 @@ class DataMapper(object):
         :param response: devil's ``Response`` object or the data
                          itself. May also be ``None``.
         :return: django's ``HttpResponse``
+
+        todo: this shouldn't change the given response. only return the
+        formatted response.
         """
 
         res = self._prepare_response(response)
@@ -88,6 +91,8 @@ class DataMapper(object):
 
         :param response: either the response data or a ``Response`` object.
         :returns: ``Response`` object
+
+        todo: we don't need this anymore as resource already does the coercion
         """
 
         if not isinstance(response, Response):
@@ -307,9 +312,11 @@ class DataMapperManager(object):
 # singleton instance
 manager = DataMapperManager()
 
+
 # utility function to format outgoing data (selects formatter automatically)
 def format(request, response, resource):
     return manager.select_formatter(request, resource).format(response)
+
 
 # utility function to parse incoming data (selects parser automatically)
 def parse(data, request, resource):

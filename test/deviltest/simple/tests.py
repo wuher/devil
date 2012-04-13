@@ -944,7 +944,8 @@ class FactoryTests(TestCase):
         }
 
         client = Client()
-        response = client.put('/simple/factory', json.dumps(persondata), 'application/json')
+        response = client.put(
+            '/simple/factory', json.dumps(persondata), 'application/json')
         self.assertEquals(response.status_code, 200)
         person = testurls.factoryresource.put_data
         self.assertTrue(isinstance(person, Person))
@@ -960,12 +961,14 @@ class FactoryTests(TestCase):
         }
 
         client = Client()
-        response = client.post('/simple/factory', json.dumps(persondata), 'application/json')
+        response = client.post(
+            '/simple/factory', json.dumps(persondata), 'application/json')
         self.assertEquals(response.status_code, 200)
         person = testurls.factoryresource.post_data
         self.assertTrue(isinstance(person, Person))
         self.assertEquals(35, person.age)
-        self.assertEquals('jedi', person.name)
+        self.assertEquals('Jedi', person.name)
+
 
 #
 # tests.py ends here

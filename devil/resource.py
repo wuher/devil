@@ -13,7 +13,7 @@ from django.conf import settings
 import errors
 import datamapper
 import util
-from http import codes
+from http import codes, Response
 import logging
 
 
@@ -66,14 +66,11 @@ class Resource(object):
     derived class) you need to define one method named after the
     corresponding http method (i.e. post, get, put or delete).
 
-    The response returned by `get()` can be one of the following:
-      - django's HttpResponse
-      - devil's Response
-      - dictionary
-      - plaintext
+    See the documentation on ``_process_response()`` to see what can
+    be returned by this method. Additionally, ``HttpStatusCodeError``s
+    are caught and converted to corresponding http responses.
 
-    Additionally, `HttpStatusCodeError`s are caught and converted to
-    corresponding http responses.
+    todo: change function parameters so that request is always before response.
     """
 
     # configuration parameters
@@ -126,9 +123,7 @@ class Resource(object):
         data = self._validate_input_data(data, request)
         data = self._create_object(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
-        formatted_response = self._format_response(request, response)
-        self._validate_output_data(response, request, formatted_response)
-        return formatted_response
+        return self._process_response(response, request)
 
     def _exec_method(self, method, request, data, *args, **kw):
         """ Execute appropriate request handler. """
@@ -137,22 +132,51 @@ class Resource(object):
         else:
             return method(request, *args, **kw)
 
-    def _format_response(self, request, response):
-        """ Format response.
+    def _process_response(self, response, request):
+        """ Process the response.
 
         If the response is ``HttpResponse``, does nothing. Otherwise,
-        formats the response using appropriate mapper.
+        serializes, formats and validates the response.
 
         :param response: resource's response. This can be
            - ``None``,
            - django's ``HttpResponse``
            - devil's ``Response``
            - dictionary (or list of dictionaries)
+           - object (or list of objects) that are first serialized into dict
+             using ``self.factory``.
            - plaintext
+        :returns: Django's ``HttpResponse``
         """
 
-        if isinstance(response, HttpResponse):
+        def coerce_response():
+            """ Coerce the response object into devil structure. """
+            if not isinstance(response, Response):
+                return Response(0, response)
             return response
+
+        if isinstance(response, HttpResponse):
+            # we don't do anything if resource returns django's http response
+            return response
+
+        devil_res = coerce_response()
+        if devil_res.content and devil_res.get_code_num() in (0, 200, 201):
+            # serialize, format and validate
+            serialized_res = devil_res.content = self._serialize_object(devil_res.content, request)
+            formatted_res = self._format_response(request, devil_res)
+            self._validate_output_data(response, serialized_res, formatted_res, request)
+        else:
+            # no data -> format only
+            formatted_res = self._format_response(request, devil_res)
+        return formatted_res
+
+    def _format_response(self, request, response):
+        """ Format response using appropriate datamapper.
+
+        Take the devil response and turn it into django response, ready to
+        be returned to the client.
+        """
+
         res = datamapper.format(request, response, self)
         # data is now formatted, let's check if the status_code is set
         if res.status_code is 0:
@@ -192,6 +216,12 @@ class Resource(object):
         return datamapper.parse(data, request, self)
 
     def _get_input_validator(self, request):
+        """ Return appropriate input validator.
+
+        For POST requests, ``self.partial_representation`` is returned
+        if it is present, ``self.representation`` otherwise.
+        """
+
         method = request.method.upper()
         if method != 'POST':
             return self.representation
@@ -226,7 +256,8 @@ class Resource(object):
         except ValidationError, exc:
             self._input_validation_failed(exc, data, request)
 
-    def _validate_output_data(self, data, request, response):
+    def _validate_output_data(
+        self, original_res, serialized_res, formatted_res, request):
         """ Validate the response data.
 
         :param response: ``HttpResponse``
@@ -238,18 +269,16 @@ class Resource(object):
         validator = self.representation
 
         # when not to validate...
-        if response.status_code is not 200 or \
-            not validator or \
-            not data:
+        if not validator:
             return
 
         try:
-            if isinstance(data, (list, tuple)):
-                map(validator.validate, data)
+            if isinstance(serialized_res, (list, tuple)):
+                map(validator.validate, serialized_res)
             else:
-                validator.validate(data)
+                validator.validate(serialized_res)
         except ValidationError, exc:
-            self._output_validation_failed(exc, data, request)
+            self._output_validation_failed(exc, serialized_res, request)
 
     def _input_validation_failed(self, error, data, request):
         """ Always raises HttpStatusCodeError.
@@ -285,6 +314,17 @@ class Resource(object):
             return self.factory.create(data, self.representation)
         else:
             return data
+
+    def _serialize_object(self, response_data, request):
+        """
+        """
+
+        if not self.factory:
+            return response_data
+        if isinstance(response_data, (list, tuple)):
+            return map(self.factory.serialize, response_data, self.representation)
+        else:
+            return self.factory.serialize(response_data, self.representation)
 
     def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
