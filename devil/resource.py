@@ -316,7 +316,15 @@ class Resource(object):
             return data
 
     def _serialize_object(self, response_data, request):
-        """
+        """ Create a python datatype from the given python object.
+
+        This will use ``self.factory`` object's ``serialize()`` function
+        to convert the object into dictionary.
+
+        If no factory is defined, this will simply return the same data
+        that was given.
+
+        :param response_data: data returned by the resource
         """
 
         if not self.factory:
