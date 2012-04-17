@@ -330,7 +330,9 @@ class Resource(object):
         if not self.factory:
             return response_data
         if isinstance(response_data, (list, tuple)):
-            return map(self.factory.serialize, response_data, self.representation)
+            return map(
+                lambda item: self.factory.serialize(item, self.representation),
+                response_data)
         else:
             return self.factory.serialize(response_data, self.representation)
 
