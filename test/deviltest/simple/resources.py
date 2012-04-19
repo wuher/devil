@@ -9,6 +9,7 @@
 from decimal import Decimal
 
 from django import forms
+from django.core.urlresolvers import reverse
 
 from devil.resource import Resource
 from devil.http import Response
@@ -18,7 +19,6 @@ from devil.mappers.jsonmapper import JsonMapper
 from devil.mappers.xmlmapper import XmlMapper
 from devil import Representation
 from simple import representations, models
-from django.core.urlresolvers import reverse
 
 
 class MyPermResource(Resource):
