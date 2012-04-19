@@ -233,7 +233,7 @@ class Resource(object):
     def _validate_input_data(self, data, request):
         """ Validate input data.
 
-        :parm request: the HTTP request
+        :param request: the HTTP request
         :param data: the parsed data
         :type data: dictionary
         :return: if validation is performed and succeeds the data is converted
@@ -310,8 +310,9 @@ class Resource(object):
         that was given.
         """
 
-        if self._is_data_method(request) and self.factory:
-            return self.factory.create(data, self.representation)
+        spec = self._get_input_validator(request)
+        if self._is_data_method(request) and spec:
+            return self.factory.create(data, spec)
         else:
             return data
 
