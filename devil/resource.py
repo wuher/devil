@@ -311,7 +311,7 @@ class Resource(object):
         """
 
         spec = self._get_input_validator(request)
-        if self._is_data_method(request) and spec:
+        if self._is_data_method(request) and spec and self.factory:
             return self.factory.create(data, spec)
         else:
             return data
