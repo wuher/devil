@@ -120,7 +120,7 @@ class MyDecimalResource(Resource):
         self.mydata = data
 
     def get(self, request, *args, **kw):
-        return {'a': 3.99, 'b': Decimal('3.99')}
+        return {'a': Decimal('5.02'), 'b': Decimal('3.99')}
 
 
 class MyNoneResource(Resource):

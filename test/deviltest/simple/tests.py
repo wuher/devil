@@ -322,7 +322,7 @@ class JsonDecimalMapperTests(TestCase):
         client = Client()
         resp = client.get('/simple/mapper/decimal?format=json')
         self.assertEquals(resp.status_code, 200)
-        self.assertEquals(resp.content, '{\n    "a": 3.99,\n    "b": 3.99\n}')
+        self.assertEquals(resp.content, '{\n    "a": 5.02,\n    "b": 3.99\n}')
 
     def test_format(self):
         client = Client()
