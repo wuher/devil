@@ -217,7 +217,7 @@ class PersonFactory(object):
         person.name = data['name']
         return person
 
-    def serialize(self, person, spec=PersonSpec()):
+    def serialize(self, person, spec=PersonSpec(), request=None):
         person.name = person.name.capitalize()
         return {
             'name': person.name,
