@@ -89,7 +89,7 @@ class PermSyncDbTest(TestCase):
 
     def test_permissions(self):
         from django.contrib.auth.models import Permission
-        perms = dict([(p.codename, p) for p in Permission.objects.filter(content_type__id=1)])
+        perms = dict([(p.codename, p) for p in Permission.objects.filter(content_type__name='devil')])
         self.assertEquals(len(perms), 4)
 
         expected = (
