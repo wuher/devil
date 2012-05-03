@@ -100,8 +100,8 @@ MIDDLEWARE_CLASSES = (
     # 'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-if DEBUG:
-    MIDDLEWARE_CLASSES += ('django_pdb.middleware.PdbMiddleware',)
+#if DEBUG:
+#    MIDDLEWARE_CLASSES += ('django_pdb.middleware.PdbMiddleware',)
 
 ROOT_URLCONF = 'deviltest.urls'
 
@@ -116,7 +116,7 @@ ACL_RESOURCES = (
     )
 
 INSTALLED_APPS = (
-    'django_pdb',
+#    'django_pdb',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.admin',

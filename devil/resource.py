@@ -332,10 +332,10 @@ class Resource(object):
             return response_data
         if isinstance(response_data, (list, tuple)):
             return map(
-                lambda item: self.factory.serialize(item, self.representation),
+                lambda item: self.factory.serialize(item, self.representation, request),
                 response_data)
         else:
-            return self.factory.serialize(response_data, self.representation)
+            return self.factory.serialize(response_data, self.representation, request)
 
     def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
