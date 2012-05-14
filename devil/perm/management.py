@@ -8,6 +8,7 @@
 
 import types
 from django.db.models import signals
+from django.db.utils import IntegrityError
 from devil.resource import Resource
 
 
@@ -21,7 +22,8 @@ def _split_mod_var_names(resource_name):
     except ValueError:
         # no dot found
         return '', resource_name
-    return resource_name[:dot_index], resource_name[dot_index+1:]
+    return resource_name[:dot_index], resource_name[dot_index + 1:]
+
 
 def _get_var_from_string(item):
     """ Get resource variable. """
@@ -32,11 +34,14 @@ def _get_var_from_string(item):
     else:
         return globals(varname)
 
+
 def _is_resource_obj(item):
     return isinstance(item, Resource)
 
+
 def _is_string(item):
     return type(item) == types.StringType
+
 
 def _instantiate_resource(item):
     try:
@@ -46,6 +51,7 @@ def _instantiate_resource(item):
     else:
         return res if _is_resource_obj(res) else None
 
+
 def _handle_string(item):
     var = _get_var_from_string(item)
     resource_obj = _instantiate_resource(item)
@@ -53,6 +59,7 @@ def _handle_string(item):
         return [resource_obj]
     else:
         return _handle_list(var)
+
 
 def _handle_resource_setting(item):
     if _is_resource_obj(item):
@@ -65,6 +72,7 @@ def _handle_resource_setting(item):
         # todo
         print '###', item
 
+
 def _handle_list(reclist):
     """ Return list of resources that have access_controller defined. """
     ret = []
@@ -72,6 +80,7 @@ def _handle_list(reclist):
         recs = _handle_resource_setting(item)
         ret += [resource for resource in recs if resource.access_controller]
     return ret
+
 
 def get_resources():
     from django.conf import settings
@@ -83,6 +92,7 @@ def get_resources():
     else:
         return _handle_list(acl_resources)
 
+
 def _ensure_content_type():
     """ Add the bulldog content type to the database if it's missing. """
     from django.contrib.contenttypes.models import ContentType
@@ -92,6 +102,7 @@ def _ensure_content_type():
         row = ContentType(name=PERM_APP_NAME, app_label=PERM_APP_NAME, model=PERM_APP_NAME)
         row.save()
     return row.id
+
 
 def _get_permission_description(permission_name):
     """ Generate a descriptive string based on the permission name.
@@ -107,6 +118,18 @@ def _get_permission_description(permission_name):
     resource = ('_'.join(parts)).lower()
     return 'Can %s %s' % (method.upper(), resource)
 
+
+def _save_new_permission(perm, content_type_id):
+    from django.contrib.auth.models import Permission
+    try:
+        Permission(
+            name=_get_permission_description(perm),
+            content_type_id=content_type_id,
+            codename=perm).save()
+    except IntegrityError:
+        pass
+
+
 def _populate_permissions(resources, content_type_id):
     """ Add all missing permissions to the database. """
     from django.contrib.auth.models import Permission
@@ -117,15 +140,14 @@ def _populate_permissions(resources, content_type_id):
         # get all resource's permissions that are not already in db
         perms = [perm for perm in resource.access_controller.get_perm_names(resource) if perm not in db_perms]
         for perm in perms:
-            Permission(
-                name=_get_permission_description(perm),
-                content_type_id=content_type_id,
-                codename=perm).save()
+            _save_new_permission(perm, content_type_id)
+
 
 def _update_db(resources):
     """ Add the content type and all permissions if they are missing. """
     content_type_id = _ensure_content_type()
     _populate_permissions(resources, content_type_id)
+
 
 def update_permissions(app, created_models, verbosity=2, **kwargs):
     resources = get_resources()
