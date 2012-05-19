@@ -310,9 +310,8 @@ class Resource(object):
         that was given.
         """
 
-        spec = self._get_input_validator(request)
-        if self._is_data_method(request) and spec and self.factory:
-            return self.factory.create(data, spec)
+        if self._is_data_method(request) and self.factory:
+            return self.factory.create(data)
         else:
             return data
 
@@ -332,10 +331,10 @@ class Resource(object):
             return response_data
         if isinstance(response_data, (list, tuple)):
             return map(
-                lambda item: self.factory.serialize(item, self.representation, request),
+                lambda item: self.factory.serialize(item, request),
                 response_data)
         else:
-            return self.factory.serialize(response_data, self.representation, request)
+            return self.factory.serialize(response_data, request)
 
     def _get_unknown_error_response(self, request, exc):
         """ Generate HttpResponse for unknown exceptions.
