@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 class Representation(forms.Form):
     """ Base class for Representations.
 
-    Resrouces that want to have automatic data validation may subclass
+    Resources that want to have automatic data validation may subclass
     this class and define the fields they need. For example::
 
         class Person(Representation):
