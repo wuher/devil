@@ -1,4 +1,4 @@
-# Simple REST frameword for Django
+# Simple REST framework for Django
 
 Devil aims to be simple to use REST framework for Django. Devil is
 influenced by [piston][1].
