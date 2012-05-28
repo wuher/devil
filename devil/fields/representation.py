@@ -26,7 +26,7 @@ class BaseRepresentation(object):
 
         self.fields = deepcopy(self.base_fields)
 
-    def validate(self, data):
+    def validate(self, data=None, obj=None):
         """ Validate and clean the data.
 
         Check also that no extra properties are present.
@@ -34,17 +34,23 @@ class BaseRepresentation(object):
         :raises: ValidationError if the data is not valid.
         """
 
-        if not isinstance(data, dict):
-            data = data.__dict__
+        def validate_dict_item(name, field):
+            """ validate field in dict data """
+            field.clean()
 
+        def validate_obj_item(name, field):
+            """ validate field in object """
+            objvalue = getattr(obj, name) if obj else data.get(name)
+            field.validate(data.get(name))
+            field.run_validators(objvalue)
+
+        validator = validate_obj_item if obj else validate_dict_item
         errors = {}
 
         # validate each field, one by one
         for name, field in self.fields.items():
-            value = data.get(name)
             try:
-                field.validate(value)
-                field.run_validators(value)
+                validator(name, field)
             except ValidationError, e:
                 errors[name] = e.messages
 

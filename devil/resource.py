@@ -116,13 +116,11 @@ class Resource(object):
         :return: ``HttpResponse``
         """
 
-        import pdb; pdb.set_trace()
         self._authenticate(request)
         self._check_permission(request)
         method = self._get_method(request)
         data = self._get_input_data(request)
-        data = self._create_object(data, request)
-        self._validate_input_data(data, request)
+        data = self._clean_input_data(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
         return self._process_response(response, request)
 
@@ -217,7 +215,9 @@ class Resource(object):
         return datamapper.parse(data, request, self)
 
     def _clean_input_data(self, data, request):
-        return data
+        obj = self._create_object(data, request)
+        self._validate_input_data(data, request)
+        return obj or data
 
     def _get_input_validator(self, request):
         """ Return appropriate input validator.
@@ -317,7 +317,7 @@ class Resource(object):
         if self._is_data_method(request) and self.factory:
             return self.factory.create(data)
         else:
-            return data
+            return None
 
     def _serialize_object(self, response_data, request):
         """ Create a python datatype from the given python object.
