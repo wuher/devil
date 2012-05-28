@@ -13,7 +13,7 @@ from devil.mappers.jsonmapper import JsonMapper
 
 
 from devil.resource import Resource
-from devil.representation import Representation
+from devil.fields import Representation
 
 __all__ = (
     Resource,

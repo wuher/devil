@@ -116,12 +116,13 @@ class Resource(object):
         :return: ``HttpResponse``
         """
 
+        import pdb; pdb.set_trace()
         self._authenticate(request)
         self._check_permission(request)
         method = self._get_method(request)
         data = self._get_input_data(request)
-        data = self._validate_input_data(data, request)
         data = self._create_object(data, request)
+        self._validate_input_data(data, request)
         response = self._exec_method(method, request, data, *args, **kw)
         return self._process_response(response, request)
 
@@ -214,6 +215,9 @@ class Resource(object):
     def _parse_input_data(self, data, request):
         """ Execute appropriate parser. """
         return datamapper.parse(data, request, self)
+
+    def _clean_input_data(self, data, request):
+        return data
 
     def _get_input_validator(self, request):
         """ Return appropriate input validator.
