@@ -6,6 +6,7 @@
 
 from representation import *
 from fields import *
+from factory import *
 
 
 #

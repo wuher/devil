@@ -79,8 +79,9 @@ class Resource(object):
     allow_anonymous = True
     authentication = None
     representation = None
-    partial_representation = None
+    post_representation = None
     factory = None
+    post_factory = None
     default_mapper = None
     mapper = None
 
@@ -215,22 +216,39 @@ class Resource(object):
         return datamapper.parse(data, request, self)
 
     def _clean_input_data(self, data, request):
-        obj = self._create_object(data, request)
-        self._validate_input_data(data, request)
-        return obj or data
+        """ Clean input data. """
+
+        # sanity check
+        if not self._is_data_method(request):
+            # this is not PUT or POST -> return
+            return data
+
+        # do cleaning
+        try:
+            if self.representation:
+                # representation defined -> perform validation
+                self._validate_input_data(data, request)
+            if self.factory:
+                # factory defined -> create object
+                return self._create_object(data, request)
+            else:
+                # no factory nor representation -> return the same data back
+                return data
+        except ValidationError, exc:
+            return self._input_validation_failed(exc, data, request)
 
     def _get_input_validator(self, request):
         """ Return appropriate input validator.
 
-        For POST requests, ``self.partial_representation`` is returned
+        For POST requests, ``self.post_representation`` is returned
         if it is present, ``self.representation`` otherwise.
         """
 
         method = request.method.upper()
         if method != 'POST':
             return self.representation
-        elif self.partial_representation:
-            return self.partial_representation
+        elif self.post_representation:
+            return self.post_representation
         else:
             return self.representation
 
@@ -247,18 +265,10 @@ class Resource(object):
         """
 
         validator = self._get_input_validator(request)
-
-        # when not to validate...
-        if not self._is_data_method(request) or not validator:
-            return data
-
-        try:
-            if isinstance(data, (list, tuple)):
-                return map(validator.validate, data)
-            else:
-                return validator.validate(data)
-        except ValidationError, exc:
-            self._input_validation_failed(exc, data, request)
+        if isinstance(data, (list, tuple)):
+            return map(validator.validate, data)
+        else:
+            return validator.validate(data)
 
     def _validate_output_data(
         self, original_res, serialized_res, formatted_res, request):
@@ -313,11 +323,10 @@ class Resource(object):
         If no factory is defined, this will simply return the same data
         that was given.
         """
-
-        if self._is_data_method(request) and self.factory:
-            return self.factory.create(data)
+        if request.method.upper() == 'POST' and self.post_factory:
+            return self.post_factory.create(data)
         else:
-            return None
+            return self.factory.create(data)
 
     def _serialize_object(self, response_data, request):
         """ Create a python datatype from the given python object.

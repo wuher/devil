@@ -38,23 +38,9 @@ class DevilField(forms.Field):
         super(DevilField, self).__init__(*args, **kw)
 
     def validate(self, value):
+        """ This was overridden to have our own ``empty_values``. """
         if value in self.empty_values and self.required:
-            # import pdb; pdb.set_trace()
             raise ValidationError(self.error_messages['required'])
-
-    def clean(self, value):
-        """ """
-        return super(DevilField, self).clean(value)
-
-    def serialize(self, value, entity, request):
-        """ todo: remove the request parameter """
-        # self.validate(value)
-        # self.run_validators(value)
-        return self.from_python(value)
-
-    def from_python(self, value):
-        """ opposite of ``to_python()`` """
-        return value
 
 
 #
