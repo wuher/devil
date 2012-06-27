@@ -55,7 +55,7 @@ class Factory(object):
         :param klass: ``create()`` must return an instance of this class.
             If ``None``, ``create()`` will return ``dict``.
         :param spec: Specification of the incoming data. This must be a
-            ``Representation`` type object.
+            ``Representation`` like object.
         """
 
         if klass:
@@ -85,15 +85,13 @@ class Factory(object):
 
         # todo: copy-paste code from representation.validate -> refactor
 
-        _data = deepcopy(self.default_create_values)
-        _data.update(data)
         prototype = {}
         errors = {}
 
         # create and populate the prototype
         for field_name, field_spec in self.spec.fields.items():
             try:
-                value = self._create_value(_data, field_name, self.spec)
+                value = self._create_value(data, field_name, self.spec)
             except ValidationError, e:
                 if field_name not in self.default_create_values:
                     errors[field_name] = e.messages
@@ -103,7 +101,7 @@ class Factory(object):
 
         # check extra fields
         if self.prevent_extra_fields:
-            extras = set(_data.keys()) - set(self.property_name_map.keys())
+            extras = set(data.keys()) - set(self.property_name_map.keys())
             if extras:
                 errors[', '.join(extras)] = ['field(s) not allowed']
 
@@ -112,6 +110,8 @@ class Factory(object):
             raise ValidationError(errors)
 
         # return obj or dict
+        _data = deepcopy(self.default_create_values)
+        _data.update(prototype)
         if self.klass:
             instance = self.klass()
             instance.__dict__.update(prototype)
