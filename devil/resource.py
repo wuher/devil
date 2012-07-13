@@ -323,10 +323,16 @@ class Resource(object):
         If no factory is defined, this will simply return the same data
         that was given.
         """
+
         if request.method.upper() == 'POST' and self.post_factory:
-            return self.post_factory.create(data)
+            fac_func = self.post_factory.create
         else:
-            return self.factory.create(data)
+            fac_func = self.factory.create
+
+        if isinstance(data, (list, tuple)):
+            return map(fac_func, data)
+        else:
+            return fac_func(data)
 
     def _serialize_object(self, response_data, request):
         """ Create a python datatype from the given python object.
