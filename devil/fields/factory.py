@@ -85,6 +85,9 @@ class Factory(object):
 
         # todo: copy-paste code from representation.validate -> refactor
 
+        if data is None:
+            return None
+
         prototype = {}
         errors = {}
 
@@ -109,7 +112,7 @@ class Factory(object):
         if errors:
             raise ValidationError(errors)
 
-        # return obj or dict
+        # return dict or object based on the prototype
         _data = deepcopy(self.default_create_values)
         _data.update(prototype)
         if self.klass:
@@ -131,16 +134,24 @@ class Factory(object):
         def should_we_insert(value, field_spec):
             return value not in self.missing or field_spec.required
 
+        errors = {}
         ret = {}
         for field_name, field_spec in self.spec.fields.items():
-            # get value as it is:
-            value = self._get_value_for_serialization(data, field_name, field_spec)
-            if should_we_insert(value, field_spec):
-                # value found -> serialize:
-                value = self._serialize_value(value, field_name, self.spec, data, request)
+            try:
+                # get value as it is:
+                value = self._get_value_for_serialization(data, field_name, field_spec)
                 if should_we_insert(value, field_spec):
-                    # we still have the value (even after serialization):
-                    ret[field_name] = value
+                    # value found -> serialize:
+                    value = self._serialize_value(value, field_name, self.spec, data, request)
+                    if should_we_insert(value, field_spec):
+                        # we still have the value (even after serialization):
+                        ret[field_name] = value
+            except ValidationError, e:
+                errors[field_name] = e.messages
+
+        if errors:
+            raise ValidationError(errors)
+
         return None if ret == {} else ret
 
     def _create_value(self, data, name, spec):
@@ -153,7 +164,7 @@ class Factory(object):
 
         field = getattr(self, 'create_' + name, None)
         if field:
-            # this factory has a spectial creator function for this field
+            # this factory has a special creator function for this field
             return field(data, name, spec)
         value = data.get(name)
         return spec.fields[name].clean(value)
