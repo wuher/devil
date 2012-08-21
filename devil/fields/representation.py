@@ -42,6 +42,8 @@ class BaseRepresentation(object):
                 field.clean(data.get(name))
             except ValidationError, e:
                 errors[name] = e.messages
+            except AttributeError, e:
+                raise ValidationError('data should be of type dict but is %s' % (type(data),))
 
         # check for extra fields
         extras = set(data.keys()) - set(self.fields.keys())
