@@ -119,10 +119,11 @@ INSTALLED_APPS = (
 #    'django_pdb',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.sessions',
     'devil.perm',
     'deviltest.simple',
+    'deviltest.docs',
 )
 
 FIXTURE_DIRS = ('simple/fixtures',)

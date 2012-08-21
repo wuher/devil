@@ -6,13 +6,15 @@
 #
 
 
-import logging, sys
+import logging
+import sys
 import datamapper
 from devil.mappers.xmlmapper import XmlMapper
 from devil.mappers.jsonmapper import JsonMapper
 
 
 from devil.resource import Resource
+from devil.docs import DocumentedResource
 from devil.fields import Representation
 from django.forms import Field
 
@@ -20,6 +22,7 @@ from django.forms import Field
 __all__ = (
     Resource,
     Representation,
+    DocumentedResource,
     )
 
 

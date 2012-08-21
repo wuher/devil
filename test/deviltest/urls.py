@@ -9,14 +9,15 @@
 from django.conf.urls.defaults import patterns, include, url
 
 # admin:
-from django.contrib import admin
-admin.autodiscover()
+# from django.contrib import admin
+# admin.autodiscover()
 
 
 urlpatterns = patterns('',
     url(r'^simple/', include('deviltest.simple.urls')),
+    url(r'^docs/', include('deviltest.docs.urls')),
     # uncomment to enable admin:
-    (r'^admin/', include(admin.site.urls)),
+    # (r'^admin/', include(admin.site.urls)),
 )
 
 
