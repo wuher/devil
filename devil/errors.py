@@ -65,6 +65,10 @@ class MethodNotAllowed(HttpStatusCodeError):
     def __init__(self, *args, **kw):
         HttpStatusCodeError.__init__(self, codes.METHOD_NOT_ALLOWED, *args, **kw)
 
+class Conflict(HttpStatusCodeError):
+    def __init__(self, *args, **kw):
+        HttpStatusCodeError.__init__(self, codes.CONFLICT, *args, **kw)
+
 
 class InternalServerError(HttpStatusCodeError):
     def __init__(self, *args, **kw):
