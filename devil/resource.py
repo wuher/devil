@@ -373,6 +373,8 @@ class Resource(object):
         if exc.has_code(codes.UNAUTHORIZED):
             return self._get_auth_challenge(exc)
         else:
+            if exc.has_code(codes.INTERNAL_SERVER_ERROR):
+                logging.getLogger('devil').error('devil caught http error: ' + str(exc), exc_info=True)
             content = exc.content or ''
             return HttpResponse(content=content, status=exc.get_code_num())
 
