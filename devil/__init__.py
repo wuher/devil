@@ -6,7 +6,8 @@
 #
 
 
-import logging, sys
+import logging
+import sys
 import datamapper
 from devil.mappers.xmlmapper import XmlMapper
 from devil.mappers.jsonmapper import JsonMapper
@@ -14,28 +15,12 @@ from devil.mappers.jsonmapper import JsonMapper
 
 from devil.resource import Resource
 from devil.fields import Representation
-from django.forms import Field
 
 
 __all__ = (
     Resource,
     Representation,
     )
-
-
-def serialize(self, value, entity=None, request=None):
-    # self.validate(value)
-    # self.run_validators(value)
-    return self.from_python(value)
-
-
-def from_python(self, value):
-    return value
-
-
-Field.alias = None
-Field.serialize = serialize
-Field.from_python = from_python
 
 
 def init_logging():

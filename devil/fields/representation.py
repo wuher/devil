@@ -14,7 +14,7 @@ __all__ = ('Representation',)
 class BaseRepresentation(object):
     """ Base class for actual Representation class.
 
-    You shouldn't need to touch this. Always subclass from
+    You shouldn't need to use this directly. Always subclass from
     :class:`Representation`.
     """
 
@@ -85,10 +85,13 @@ class RepresentationMeta(type):
 
 
 class Representation(BaseRepresentation):
-    """ Base class for all validation Representations.
+    """ Base class for all Representations.
 
     Subclass this for your own Representation. Only two properties are
     required from Representations: ``validate`` method and ``fields`` property.
+
+    Representations are used for two purposes: to validate data and to perform
+    object creation/serialization by object factories.
 
     seealso:: :class:`BaseRepresentation` for details on methods.
     """
