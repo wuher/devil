@@ -62,7 +62,7 @@ layout: default
 
           Django alreay provides a nice way to <a
           href="https://docs.djangoproject.com/en/dev/topics/http/urls/"> define
-          URL schemes</a> for your application. For example (copied from the
+          URL schemes</a> for web applications. For example (copied from the
           Django docs):
 
         </p>
@@ -75,6 +75,17 @@ urlpatterns = patterns('',
     (r'^articles/(\d{4})/(\d{2})/(\d+)/$', 'news.views.article_detail'),
 )
 {% endhighlight %}
+
+        <p>
+
+          When building a REST API with Devil, you define your URLs exactly like
+          this; the only difference is that instead of mapping the URLs into views,
+          you map them in your resources. A resource in Devil is a class derived
+          from Devil's <a href="https://github.com/wuher/devil/blob/master/devil/resource.py">
+          Resource</a>. The derived class should then implement one or more of
+          the four REST methods (<code>post, get, put, delete</code>).
+
+        </p>
 
   </body>
 </html>
