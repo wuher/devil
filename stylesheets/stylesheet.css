@@ -10,10 +10,6 @@ body {
 
 /* General & 'Reset' Stuff */
 
-p {
-  font-size: 13px;
-}
-
 .container {
   width: 90%;
   max-width: 600px;
