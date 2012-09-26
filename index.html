@@ -79,13 +79,19 @@ urlpatterns = patterns('',
         <p>
 
           When building a REST API with Devil, you define your URLs exactly like
-          this; the only difference is that instead of mapping the URLs into views,
-          you map them in your resources. A resource in Devil is a class derived
-          from Devil's <a href="https://github.com/wuher/devil/blob/master/devil/resource.py">
+          this; the only difference is that instead of mapping the URLs into
+          views, you map them in your resources. A resource in Devil is an
+          instance of a class derived from Devil's <a
+          href="https://github.com/wuher/devil/blob/master/devil/resource.py">
           Resource</a>. The derived class should then implement one or more of
-          the four REST methods (<code>post, get, put, delete</code>).
+          the four REST methods (<code>post, get, put, delete</code>). This is
+          the same approach taken by
+          <a href="https://bitbucket.org/jespern/django-piston/wiki/Home">
+          Piston</a> (a REST framework that Devil was originally inspired by).
 
         </p>
+
+
 
   </body>
 </html>
