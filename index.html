@@ -84,9 +84,47 @@ urlpatterns = patterns('',
           instance of a class derived from Devil's <a
           href="https://github.com/wuher/devil/blob/master/devil/resource.py">
           Resource</a>. The derived class should then implement one or more of
-          the four REST methods (<code>post, get, put, delete</code>). This is
-          the same approach taken by
-          <a href="https://bitbucket.org/jespern/django-piston/wiki/Home">
+          the four REST methods (<code>post, get, put, delete</code>) and
+          return appropriate data for example as python dictionary. For example:
+
+        </p>
+
+{% highlight python %}
+from devil.resource import Resource
+from devil.http import Response
+from devil import errors
+
+class Order(Resource):
+
+    def post(self, data, request, id):
+        """ Create a new resource using POST.
+
+        :param data: data provided by the client (converted into dict by devil)
+        :param id: optional order id in the url (this is a named parameter in the url regex)
+        """
+        if id:
+            # return 405 to client by raising exception here
+            raise errors.MethodNotAllowed()
+        # data holds client's data as python dictionary
+        newdata = order_repository.add(data)
+        # return 201, Location header, and the newly added data (as dict)
+        return Response(201, newdata, {
+            'Location': '%s%d' % (reverse('user'), user.pk)})
+
+    def get(self, request, id):
+        """ Get one user or all users """
+        if id:
+            # devil will convert the dictionary into json
+            return order_repository.get_one(id)
+        else:
+            # devil will convert the list of dictionaries into json
+            return order_repository.get_all()
+{% endhighlight %}
+
+        <p>
+
+          This is similar approach taken by <a
+          href="https://bitbucket.org/jespern/django-piston/wiki/Home">
           Piston</a> (a REST framework that Devil was originally inspired by).
 
         </p>
