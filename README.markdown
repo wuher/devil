@@ -28,6 +28,20 @@ influenced by [piston][1].
     - Automatic documentation generation (_Not implemented yet_)
 
 
+## Table of Contents
+
+  - [Installation](#installation)
+  - [Quick Example](#quick-example)
+  - [Step by Step Instructions](#step-by-step-instructions)
+  - [URL Dispatching](#url-dispatching)
+  - [Method Dispatching](#method-dispatching)
+  - [Content Type Negotiation](#content-type-negotiation)
+  - [Dealing with Data](#dealing-with-data)
+  - [HTTP Responses](#http-responses)
+  - [Configuration](#configuration)
+  - [License](#license)
+
+
 ## Installation
 
     pip install devil
@@ -118,8 +132,6 @@ for instructions on running the example and how to examine the code.
 
 
 ## URL Dispatching
-
-[hiihoo](#quick-example)
 
 The relationship between URLs and RESTful resources is _one to many_. That is,
 one resource may have several URLs mapped to it. Conversely, one URL is always
