@@ -1,6 +1,6 @@
 # Simple REST framework for Django
 
-Devil aims to be simple to use REST framework for Django. Devil is
+[Devil][13] aims to be simple to use REST framework for Django. Devil is
 influenced by [piston][1].
 
 ## Key Characteristics
@@ -74,6 +74,8 @@ curl:
             "jedi": "luke"
         }
 
+Anoher simple example is available [here][13]
+
 
 ## Step by Step Instructions
 
@@ -111,12 +113,13 @@ or if you want to be more HTTP friendly:
     $ curl http://localhost:8000/contact -H 'Accept: application/json'
 
 
-A more complete example can be found under `examples/userdb`. See the
-`README.md` in that directory for instructions on running the example and how
-to examine the code.
+A more complete example can be found under [examples/userdb][14]. See the README
+for instructions on running the example and how to examine the code.
 
 
 ## URL Dispatching
+
+[hiihoo](#quick-example)
 
 The relationship between URLs and RESTful resources is _one to many_. That is,
 one resource may have several URLs mapped to it. Conversely, one URL is always
@@ -476,3 +479,5 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [10]:https://docs.djangoproject.com/en/dev/topics/auth/#django.contrib.auth.models.User.is_superuser
 [11]:https://docs.djangoproject.com/en/dev/topics/auth/#django.contrib.auth.models.User.is_active
 [12]:https://docs.djangoproject.com/en/dev/topics/auth/#django.contrib.auth.models.User.get_all_permissions
+[13]:http://wuher.github.com/devil/
+[14]:https://github.com/wuher/devil/tree/master/example/userdb
