@@ -48,11 +48,11 @@ layout: default
           Devil is not a complete application framework in a sense that it does
           not mandate the architecture of your application in any way. It does
           not tell you how you should write your services/controllers/database
-          models, it only streamlines the way you write REST APIs. You can
-          concentrate on just implementing the <code>put</code> and
-          <code>get</code> functions, while Devil will take care of things like
-          content negotiation, data validation, data conversions and providing
-          auto-generated documentation.
+          models (nor how to connect them), it only streamlines the way you
+          write REST APIs. You can concentrate on just implementing the
+          <code>put</code> and <code>get</code> functions, while Devil will take
+          care of things like content negotiation, data validation, data
+          conversions and providing auto-generated documentation.
 
         </p>
 
@@ -90,7 +90,8 @@ urlpatterns = patterns('',
         </p>
 
 {% highlight python %}
-from devil.resource import Resource
+from django.core.urlresolvers import reverse
+from devil import Resource
 from devil.http import Response
 from devil import errors
 
@@ -109,10 +110,10 @@ class Order(Resource):
         newdata = order_repository.add(data)
         # return 201, Location header, and the newly added data (as dict)
         return Response(201, newdata, {
-            'Location': '%s%d' % (reverse('user'), user.pk)})
+            'Location': '%s%d' % (reverse('order'), order['id'])})
 
     def get(self, request, id):
-        """ Get one user or all users """
+        """ Get one order or all orders """
         if id:
             # devil will convert the dictionary into json
             return order_repository.get_one(id)
@@ -129,7 +130,17 @@ class Order(Resource):
 
         </p>
 
+        <h3>Features</h3>
 
+        <ul>
+          <li>Automatic content type negotiation</li>
+          <li>Support for authentication</li>
+          <li>Flexible access control mechanism</li>
+          <li>Ability to formally define representations</li>
+          <li>Data validation</li>
+          <li>Data marshalling/unmarshalling (dict &lt;-&gt; object)</li>
+          <li>Auto-generated documentation of the API</li>
+        </ul>
 
   </body>
 </html>
