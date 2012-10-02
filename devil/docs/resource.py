@@ -91,7 +91,7 @@ class DocumentedResource(Resource):
         """ Return a list of URLs that map to this resource. """
         resolver = get_resolver(None)
         possibilities = resolver.reverse_dict.getlist(self)
-        urls = [pattern for possibility, pattern in possibilities]
+        urls = [possibility[0] for possibility in possibilities]
         return urls
 
     def _get_method_doc(self):
