@@ -38,6 +38,8 @@ influenced by [piston][1].
   - [Content Type Negotiation](#content-type-negotiation)
   - [Dealing with Data](#dealing-with-data)
   - [HTTP Responses](#http-responses)
+  - [Defining Representations](#defining-representations)
+  - [Auto-generated Documentation](#auto-generated-documentation)
   - [Configuration](#configuration)
   - [License](#license)
 
@@ -53,22 +55,26 @@ Source code can be found at [GitGub][7]
 
 resources.py:
 
-    from devil.resource import Resource
+```python
+from devil.resource import Resource
 
-    class MyTestResource(Resource):
-        def get(self, request):
-            return {'jedi': 'luke'}
+class MyTestResource(Resource):
+    def get(self, request):
+        return {'jedi': 'luke'}
+```
 
 urls.py:
 
-    from django.conf.urls.defaults import patterns, url
-    from devil.resource import Resource
-    import resources
+```python
+from django.conf.urls.defaults import patterns, url
+from devil.resource import Resource
+import resources
 
-    mytestresource = resources.MyTestResource()
-    urlpatterns = patterns('',
-        url(r'^test', mytestresource),
-    )
+mytestresource = resources.MyTestResource()
+urlpatterns = patterns('',
+    url(r'^test', mytestresource),
+)
+```
 
 curl:
 
@@ -100,22 +106,26 @@ Anoher simple example is available [here][13]
 
 contacts/resources.py:
 
-    from devil.resource import Resource
+```python
+from devil.resource import Resource
 
-    class Contact(Resource):
-        def get(self, request, *args, **kw):
-            return {'name': 'Luke Skywalker'}
+class Contact(Resource):
+    def get(self, request, *args, **kw):
+        return {'name': 'Luke Skywalker'}
+```
 
 urls.py:
 
-    from django.conf.urls.defaults import patterns, url
-    from contacts import resources
+```python
+from django.conf.urls.defaults import patterns, url
+from contacts import resources
 
-    contacts_resource = resources.Contact()
+contacts_resource = resources.Contact()
 
-    urlpatterns = patterns('',
-        url(r'contact', contacts_resource),
-    )
+urlpatterns = patterns('',
+    url(r'contact', contacts_resource),
+)
+```
 
 start the server and in the console say (or you can use a browser):
 
@@ -142,38 +152,47 @@ terms and concepts the resources in Devil become the _views_ of Django.
 Say you define your resources in a module called `resources`. Then in your
 `urls.py` file you would instantiate and map your resources to URLs, like so:
 
+```python
+user_resource = resources.UserResource()
 
-    user_resource = resources.UserResource()
-
-    urlpatterns = patterns('',
-        url(r'/user', user_resource),
-    )
+urlpatterns = patterns('',
+    url(r'/user', user_resource),
+)
+```
 
 And to define aliases, you can just add new mappings to the same resource:
 
-    urlpatterns = patterns('',
-        url(r'/user', user_resource),
-        url(r'/jedi', user_resource),
-        url(r'/sith', user_resource),
-    )
+```python
+urlpatterns = patterns('',
+    url(r'/user', user_resource),
+    url(r'/jedi', user_resource),
+    url(r'/sith', user_resource),
+)
+```
 
 You can use Django's built-in regexp features like named parameters:
 
-    urlpatterns = patterns('',
-        url(r'/user(?P<id>\d{1,7})?', user_resource),
-    )
+```python
+urlpatterns = patterns('',
+    url(r'/user(?P<id>\d{1,7})?', user_resource),
+)
+```
 
 In this case, the `id` property would be available in the resource method:
 
-    class UserResource(Resource):
-        def get(self, request, id, *args, **kw):
-            print id
+```python
+class UserResource(Resource):
+    def get(self, request, id, *args, **kw):
+        print id
+```
 
 or
 
-    class UserResource(Resource):
-        def get(self, request, *args, **kw):
-            print kw['id']
+```python
+class UserResource(Resource):
+    def get(self, request, *args, **kw):
+        print kw['id']
+```
 
 
 ## Method Dispatching
@@ -184,11 +203,15 @@ method called `post` in the resource and invoke it. If the resource doesn't
 define `post` method, Devil will automatically return `405 Mehod Not Allowed`
 to the client. The signature for the method for `PUT` and `POST` requests is:
 
-    def post(self, data, request):
+```python
+def post(self, data, request):
+```
 
 and for others methods:
 
-    def get(self, request):
+```python
+def get(self, request):
+```
 
 so, PUTs and POSTs will have additional `data` attribute that contains the
 (possibly parsed) content body of the request. Also, bear in mind that
@@ -198,10 +221,11 @@ function parameters may also include named parameters from url mappings.
 ## Content Type Negotiation
 
 Devil uses the terms `parser` and `formatter` for data decoding and encoding
-respectively. They are collectively referred to as data `mappers`. By default,
-devil tries to parse all data that comes in with `PUT` and `POST` requests.
-Similarly, devil automatically formats all outgoing data when it is present.
-Appropriate mapper can be defined in one of the following places (note that
+respectively. They are collectively referred to as data `mappers`. Devil uses
+data mappers to parse all data that comes in with `PUT` and `POST` requests
+(e.g. JSON, XML or plaintext). Similarly, devil uses data mappers to
+automatically format all outgoing data when it is present. The mapper to be used
+for a given request can be defined in one of the following places (note that
 this list is not sorted by precedence):
 
   - In the URL:
@@ -209,7 +233,7 @@ this list is not sorted by precedence):
     - or with `.json` suffix
   - HTTP [Accept][2] header. The Accept header supports the full format,
     as in: `Accept: audio/*; q=0.2, audio/basic`
-  - HTTP [Content-Type][3] header (meaningful only for `PUT`s and `POST`s)
+  - HTTP [Content-Type][3] header (meaningful only for `PUT` and `POST`)
   - A resource may define its own mapper which will take precedence over
     anything else
      - define `mapper` in your derived `Resource` class (see [examples][4])
@@ -242,27 +266,30 @@ resources][4] in tests for instructions on how to implement your own mappers.
 
 ## Dealing with Data
 
-Once the appropriate data mapper has been chosen, the devil can perform
+Once the appropriate data mapper has been chosen, devil can perform
 decoding for the incoming data and encoding for the outgoing data. For
 example, if a json mapper is chosen your `post` and `get` functions would look
 something like this (in terms of data passing):
 
     $ curl http://localhost:8000/contact -X POST -d '{"name": "Darth Maul", "age": 24}' -H 'Content-Type: application/json'
 
-    def post(self, data, request):
-        # data is available as a python dict in the data parameter
-        print data['name']       # Darth Maul
-        print type(data['age'])  # <type 'int'>
-
+```python
+def post(self, data, request):
+    # data is available as a python dict in the data parameter
+    print data['name']       # Darth Maul
+    print type(data['age'])  # <type 'int'>
+```
 
     $ curl http://localhost:8000/contact/1 -X GET -H 'Accept: application/json'
 
+```python
     def get(self, request):
         # you can return a python dictionary
         return {
             'name': 'Yoda',
             '876',
         }
+```
 
 Devil's built-in json and xml mappers will convert to and from python
 dictionaries and lists. However, the built-in text (`text/plain`) mapper will
@@ -271,7 +298,7 @@ only convert between strings and unicode objects.
 
 ## HTTP Responses
 
-A resource (that is, any of the post/get/put/delete methods) may return following
+A resource (that is, any of its post/get/put/delete methods) may return following
 values:
 
   - dictionary
@@ -295,14 +322,152 @@ package. So whenever there's an error situation and you want to return a certain
 response code, you can raise a `HttpStatusCodeError` and devil will
 catch it and turn it into appropriate HTTP response object.
 
-    from devil import errors
-    def post(self, data, request):
-        if data['age'] > 50:
-            # too old
-            raise errors.BadRequest("you're too old")
+```python
+from devil import errors
+def post(self, data, request):
+    if data['age'] > 50:
+        # too old
+        raise errors.BadRequest("you're too old")
+```
 
 In the example, the client would receive `400 BAD REQUEST` with the string
 `"you're too old"` in the body whenever the age is above 50.
+
+
+## Defining Representations
+
+Devil uses Django's [form fields][15] to define representations. By defining
+representation for your resource, you gain three advantages: automatic data
+validation, possibility to use object factories to automatically create python
+objects from your data and the possibility to have [auto-generated documentation
+](#auto-generated-documentation) for your resources. The easiest way to define a
+representation for your resource is to subclass from [Devil's Representation
+class][17] and use fields defined in [Django][15] and [Devil][18] to define all
+the properties.
+
+Following example shows a simple representation using Django's form fields:
+
+```python
+from django import forms
+from devil import Representation
+
+class UserRepresentation(Representation):
+    username = forms.CharField(max_length=30)
+    joined = forms.DateField(input_formats='%Y-%m-%d')
+```
+
+Devil provides couple of handy fields for defining more complex representations,
+mainly `NestedField` and `ListField`. These can be used for speficying composite
+and collection fields respectively:
+
+```python
+from devil.fields import ListField, NestedField, EnumField
+
+class EmailAddress(NestedField):
+    email = forms.EmailField()
+    type = forms.CharField(required=False)
+
+class UserRepresentation(Representation):
+    username = forms.CharField(max_length=30)
+    joindate = forms.DateField(input_formats=('%Y-%m-%d',))
+    emailAddresses = EmailAddress()
+    accountType = EnumField('root', 'novice', 'intermediate')
+    tags = ListField(forms.CharField(max_length=20), required=False)
+```
+
+The `EmailField` defined here will be reusable in any representation that embeds
+email addresses. The `UserRepresentation` on the other hand, is a complete
+representation that can be used in a resource to perform automatic data
+validation. To see how to put `UserRepresentation` into use, see
+[configuration](#representation).
+
+
+## Using object factories
+
+After a [data mapper](#dealing-with-data) has converted the data into python
+dictionary, an object factory may further convert the dictionary into python
+object. Against common convention for implementing factories, Devil's
+[factory][16] also provides `serialize()` function which is the counter
+operation of `create()`.
+
+Factory uses [representation](#defining-representations) object as a
+specification when performing object creation and serialization. Normally a
+_field_ speficied in the representation knows how to marshal/unmarshal itself
+but if not, a subclassed factory may provide `create_foo()` and
+`serialize_foo()` functions to provide custom creation/serialization of a field
+(`foo` in our example). Following example demonstrates the definition of
+`UserFactory`.
+
+```python
+from devil import Factory
+
+class User(object):
+    pass
+
+class UserFactory(Factory):
+
+    klass = User
+    spec = UserRepresentation()
+
+```
+
+An example of manually using `UserFactory`:
+
+```python
+testdata = {
+    'username': 'jedi',
+    'joindate': '2012-01-18',
+    'emailAddress': {
+        'email': 'jedi@rebillion.net',
+        'type': 'work',
+    },
+    'accountType': 'root',
+    'tags': ['jedi', 'active', 'rebel'],
+}
+
+factory = UserFactory()
+user = factory.create(testdata)
+print user.username  # 'jedi'
+print user.joindate  # datetime.date(2012, 1, 18)
+print user.emailAddress.email  # 'jedi@rebillion.net'
+
+```
+
+To see how to instruct Devil to automatically convert incoming data into python
+objects using factories, see [configuration](#factory).
+
+Factories also support name mangling of properties. For example:
+
+    emailAddress -> email_address
+    email_address -> emailAddress
+
+This is achieved by providing ``alias`` property for a field. For Example:
+
+```python
+
+class UserRepresentation(Representation):
+    emailAddress = EmailField(alias='email_address')
+```
+
+This definition wouldn't have any affect on data when in serialized format. That
+is, in JSON or in dictionary the property name is still `emailAddress`. However,
+when the field is present in python object (i.e. after object has been created
+with `factory.create()` or when it is given to `factory.serialize()`) the name
+of the property is `email_address`.
+
+
+## Auto-generated Documentation
+
+**NOTE** This is still a work in progress but there is a very bare (but working)
+implementation in the [doc branch][16]. Basically, by subclassing your resources
+from `DocumentedResource` instead of `Resource` you add support for auto-
+generated documenatation. When client provides `_doc` in the query string of the
+request, a documentation is generated instead of the actual method being
+executed. The documentation includes:
+
+  - docstring of the implementing resource-class
+  - all supported methods and their docstrings
+  - representations (if defined) and their constraints
 
 
 ## Configuration
@@ -310,18 +475,53 @@ In the example, the client would receive `400 BAD REQUEST` with the string
 Resources in Devil can be configured by overriding any of the following class
 properties defined in the `devil.Resource` class:
 
-    class Resource(object):
-        access_controller = None
-        allow_anonymous = True
-        authentication = None
-        representation = None
-        default_mapper = None
-        mapper = None
+```python
+class Resource(object):
+    access_controller = None
+    allow_anonymous = True
+    authentication = None
+    representation = None
+    post_representation = None
+    factory = None
+    post_factory = None
+    default_mapper = None
+    mapper = None
+```
 
 It is usually a good idea to derive `devil.Resource` and use the derived class
 as a base class for your project's resources. That way, you only need to define
 these configurations once. The values shown above are the default values that are
 used if not overridden.
+
+
+### representation
+
+When defined, this representation will be used for validating both, incoming and
+outgoing data. For example: `representation = UserRepresentation()`. More
+information on representations is available [here](#defining-representations)
+
+
+### post_representation
+
+When defined, this representation will be used for validating client-data inside
+a POST request. If not defined `representation` will be used for POST requests
+too. `post_representation` will never be used for validating outgoing data (i.e.
+data returned to the client).
+
+
+### factory
+
+When defined, Devil uses this factory to automatically convert incoming data
+into python objects and outgoing objects into serialized format. An example
+definition looks like this: `factory = UserFactory()`. More information on
+factories is available [here ](#using-object-factories).
+
+
+### post_factory
+
+When defined, this factory will be used for creating a python object from data
+inside a POST request. If not defined, `factory` will be used for POST requests
+too. `post_factory` will never be used for serializing outgoing data.
 
 
 ### authentication
@@ -336,11 +536,12 @@ Instead of implementing your own authentication you are free to use devil's
 HTTP basic authentication or one of Django's authentication middlewares. To
 use Devil's authentication, you can simply add this to your resource class:
 
+```python
+from devil.auth import HttpBasic
 
-    from devil.auth import HttpBasic
-
-    class MyResource(Resource):
-        authentication = HttpBasic()
+class MyResource(Resource):
+    authentication = HttpBasic()
+```
 
 
 ### allow_anonymous
@@ -364,12 +565,13 @@ an access controller based on Django's _users_, _groups_ and _permissions_. To
 make use of it, you would say this in your resource code:
 
 
-    from devil.resource import Resource
-    from devil.perm.acl import PermissionController
+```python
+from devil.resource import Resource
+from devil.perm.acl import PermissionController
 
-    class MyResource(Resource):
-        access_controller = PermissionController()
-
+class MyResource(Resource):
+    access_controller = PermissionController()
+```
 
 After this, all requests to `MyResource` will be authorized based on the user
 who sent the request and the method that was used. So, each resource has four
@@ -391,30 +593,30 @@ into your Django `settings.py` file:
 
 For example:
 
+```python
+ACL_RESOURCES = (
+    'myproject.myapp.urls.acl_resources',
+    )
 
-    ACL_RESOURCES = (
-        'myproject.myapp.urls.acl_resources',
-        )
-
-    INSTALLED_APPS = (
-        'devil.perm',
-        )
-
+INSTALLED_APPS = (
+    'devil.perm',
+    )
+```
 
 Now, you also need to have your protected resources as a list in the `urls.py`
 file. For example:
 
+```python
+myresource = MyResource()
 
-    myresource = MyResource()
+acl_resources = (
+    myresource,
+    )
 
-    acl_resources = (
-        myresource,
-        )
-
-    urlpatterns = (
-        url(r'^test', myresource),
-        )
-
+urlpatterns = (
+    url(r'^test', myresource),
+    )
+```
 
 After this, you can run `python manage.py syncdb` and have devil to insert all
 necessary permissions into the database. To be exact, devil inserts them into
@@ -493,3 +695,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [12]:https://docs.djangoproject.com/en/dev/topics/auth/#django.contrib.auth.models.User.get_all_permissions
 [13]:http://wuher.github.com/devil/
 [14]:https://github.com/wuher/devil/tree/master/example/userdb
+[15]:https://docs.djangoproject.com/en/dev/ref/forms/fields/
+[16]:https://github.com/wuher/devil/tree/doc
+[17]:https://github.com/wuher/devil/blob/doc/devil/fields/representation.py
+[18]:https://github.com/wuher/devil/blob/master/devil/fields/factory.py
