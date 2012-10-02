@@ -39,6 +39,7 @@ influenced by [piston][1].
   - [Dealing with Data](#dealing-with-data)
   - [HTTP Responses](#http-responses)
   - [Defining Representations](#defining-representations)
+  - [Using Object Factories](#using-object-factories)
   - [Auto-generated Documentation](#auto-generated-documentation)
   - [Configuration](#configuration)
   - [License](#license)
@@ -459,11 +460,12 @@ of the property is `email_address`.
 ## Auto-generated Documentation
 
 **NOTE** This is still a work in progress but there is a very bare (but working)
-implementation in the [doc branch][16]. Basically, by subclassing your resources
-from `DocumentedResource` instead of `Resource` you add support for auto-
-generated documenatation. When client provides `_doc` in the query string of the
-request, a documentation is generated instead of the actual method being
-executed. The documentation includes:
+implementation in the [doc branch][16].
+
+Basically, by subclassing your resources from `DocumentedResource` instead of
+`Resource` you add support for auto- generated documenatation. When client
+provides `_doc` in the query string of the request, a documentation is generated
+instead of the actual method being executed. The documentation includes:
 
   - docstring of the implementing resource-class
   - all supported methods and their docstrings
