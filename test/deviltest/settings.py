@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'devil.perm',
     'deviltest.simple',
+    'deviltest.fields',
 )
 
 FIXTURE_DIRS = ('simple/fixtures',)
