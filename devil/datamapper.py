@@ -26,7 +26,7 @@ class DataMapper(object):
     def format(self, response):
         """ Format the data.
 
-        In derived classed, it is usually better idea to override
+        In derived classes, it is usually better idea to override
         ``_format_data()`` than this method.
 
         :param response: devil's ``Response`` object or the data
@@ -136,7 +136,8 @@ class DataMapperManager(object):
     def __init__(self):
         """ Initialize the manager.
 
-        The ``_datamappers`` dictianary is initialized here to make testing easier.
+        The ``_datamappers`` dictionary is initialized here to make testing
+        easier.
         """
 
         self._datamappers = {

@@ -116,13 +116,14 @@ ACL_RESOURCES = (
     )
 
 INSTALLED_APPS = (
-#    'django_pdb',
+    # 'django_pdb',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     # 'django.contrib.admin',
     'django.contrib.sessions',
     'devil.perm',
     'deviltest.simple',
+    'deviltest.fields',
     'deviltest.docs',
 )
 

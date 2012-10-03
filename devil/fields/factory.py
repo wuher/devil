@@ -14,21 +14,24 @@ class Factory(object):
     provides ``serialize()`` function which is the counter operation
     of ``create()``.
 
-    Factory uses a *specification* to be able to do creation and serialization.
-    A specification object must have a *fields* property that contains the types
-    of all fields. Normally a *field* knows how to marshal/unmarshal itself but
-    if not, a subclassed factory may provide ``create_foo`` and
-    ``serialize_foo`` functions to provide custom creation/serialization.
+    Factory uses a *specification* (pattern) to be able to do creation and
+    serialization. A specification object must have a *fields* property that
+    contains the types of all fields. Normally a *field* knows how to
+    marshal/unmarshal itself but if not, a subclassed factory may provide
+    ``create_foo`` and ``serialize_foo`` functions to provide custom
+    creation/serialization. Devil provides a base class for defining
+    specifications in class :class:``Representation``.
 
     This factory supports name mangling of properties.
 
     For example:
+
         tripPurpose -> trip_purpose
         trip_purpose -> tripPurpose
 
-    Fields may provide ``alias`` property so that we can find the serialized
-    value when it's stored under different name than what's specified in the
-    spec.
+    This is achieved by providing ``alias`` property for a field so that we can
+    find the serialized value when it's stored under different name than what's
+    specified in the spec.
     """
 
     #: These values, when used as values of properties are considered as being
@@ -42,7 +45,7 @@ class Factory(object):
     #: Specification of the **incoming** data.
     spec = None
 
-    #: todo
+    #: todo: do we really need this?
     default_create_values = {}
 
     def __init__(
@@ -122,7 +125,7 @@ class Factory(object):
         else:
             return prototype
 
-    def serialize(self, data, request=None):
+    def serialize(self, entity, request=None):
         """ Serialize entity into dictionary.
 
         The spec can affect how individual fields will be serialized by
@@ -136,16 +139,15 @@ class Factory(object):
 
         errors = {}
         ret = {}
+
         for field_name, field_spec in self.spec.fields.items():
+            value = self._get_value_for_serialization(entity, field_name, field_spec)
+            func = self._get_serialize_func(field_name, self.spec)
             try:
-                # get value as it is:
-                value = self._get_value_for_serialization(data, field_name, field_spec)
+                # perform serialization
+                value = func(value, entity, request)
                 if should_we_insert(value, field_spec):
-                    # value found -> serialize:
-                    value = self._serialize_value(value, field_name, self.spec, data, request)
-                    if should_we_insert(value, field_spec):
-                        # we still have the value (even after serialization):
-                        ret[field_name] = value
+                    ret[field_name] = value
             except ValidationError, e:
                 errors[field_name] = e.messages
 
@@ -169,19 +171,6 @@ class Factory(object):
         value = data.get(name)
         return spec.fields[name].clean(value)
 
-    def _serialize_value(self, value, name, spec, entity, request):
-        """ Serialize a value suitable for data dictionary.
-
-        :param value: the value of the entity's field.
-        :param name: name of the field.
-        :param spec: spec for the whole entity.
-        :param entity: the whole entity (this may be interesting to
-            more complex serializations).
-        """
-
-        serialize_func = self._get_serialize_func(name, spec)
-        return serialize_func(value, entity, request)
-
     def _get_serialize_func(self, name, spec):
         """ Return the function that is used for serialization. """
         func = getattr(self, 'serialize_' + name, None)
@@ -194,13 +183,9 @@ class Factory(object):
         return lambda value, entity, request: value
 
     def _get_value_for_serialization(self, data, name, spec):
-        """ Return the value of the field in entity. """
+        """ Return the value of the field in entity (or ``None``). """
         name = self.property_name_map[name]
-        # todo: remove isintance hack when create() always gives objects
-        if self.klass and not isinstance(data, dict):
-            return getattr(data, name, None)
-        else:
-            return data.get(name)
+        return getattr(data, name, None)
 
     def _create_mappings(self, spec):
         """ Create property name map based on aliases. """

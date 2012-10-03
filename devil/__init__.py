@@ -16,7 +16,6 @@ from devil.mappers.jsonmapper import JsonMapper
 from devil.resource import Resource
 from devil.docs import DocumentedResource
 from devil.fields import Representation
-from django.forms import Field
 
 
 __all__ = (
@@ -24,21 +23,6 @@ __all__ = (
     Representation,
     DocumentedResource,
     )
-
-
-def serialize(self, value, entity=None, request=None):
-    # self.validate(value)
-    # self.run_validators(value)
-    return self.from_python(value)
-
-
-def from_python(self, value):
-    return value
-
-
-Field.alias = None
-Field.serialize = serialize
-Field.from_python = from_python
 
 
 def init_logging():
