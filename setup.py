@@ -1,8 +1,8 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='devil',
-    version='0.7',
+    version='0.8',
     author='Janne Kuuskeri (wuher)',
     author_email='janne.kuuskeri@gmail.com',
     url='https://github.com/wuher/devil/',
