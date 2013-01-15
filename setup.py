@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='devil',
-    version='0.8',
+    version='0.9',
     author='Janne Kuuskeri (wuher)',
     author_email='janne.kuuskeri@gmail.com',
     url='https://github.com/wuher/devil/',
