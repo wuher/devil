@@ -40,8 +40,8 @@ class JsonMapper(DataMapper):
         self._maybe_add_use_decimal(params)
         try:
             return json.loads(data, charset, **params)
-        except ValueError:
-            raise errors.BadRequest('unable to parse data')
+        except ValueError, exc:
+            raise errors.BadRequest('unable to parse data: %s' % (str(exc),))
 
     def _maybe_add_use_decimal(self, params):
         """ Maybe add ``use_decimal`` to the given parameters
