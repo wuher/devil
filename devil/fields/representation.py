@@ -36,6 +36,8 @@ class BaseRepresentation(object):
 
         errors = {}
 
+        data = self._getData(data)
+
         # validate each field, one by one
         for name, field in self.fields.items():
             try:
@@ -51,6 +53,22 @@ class BaseRepresentation(object):
         # if errors, raise ValidationError
         if errors:
             raise ValidationError(errors)
+
+    def _getData(self, data):
+        """ Check that data is acceptable and return it.
+
+        Default behavior is that the data has to be of type `dict`. In derived
+        classes this method could for example allow `None` or empty strings and
+        just return empty dictionary.
+
+        :raises: ``ValidationError`` if data is missing or wrong type
+        :return: the data to be validated
+        """
+
+        if not isinstance(data, dict):
+            raise ValidationError(
+                'data is not a valid dictionary: %s' % (str(type(data)),))
+        return data
 
 
 def get_declared_fields(bases, attrs):
