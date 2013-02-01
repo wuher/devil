@@ -44,6 +44,7 @@ def extract_charset(content_type):
     match = charset_pattern.match(content_type)
     return match.group(1) if match else None
 
+
 def get_charset(request):
     """ Extract charset from the content type
     """
