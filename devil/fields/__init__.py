@@ -16,7 +16,7 @@ from factory import *
 # they be defined in django or by the application (derived from devil.Field).
 # This is just a convenience and performance optimization.
 #
-# Django already provides the opposite of these two function in its Field
+# Django already provides the opposite of these two functions in its Field
 # implementation: clean() and to_python().
 #
 
