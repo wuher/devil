@@ -32,7 +32,7 @@ def _get_var_from_string(item):
         mod = __import__(modname, globals(), locals(), [varname], -1)
         return getattr(mod, varname)
     else:
-        return globals(varname)
+        return globals()[varname]
 
 
 def _is_resource_obj(item):
