@@ -14,6 +14,7 @@ __all__ = (
     'DevilField',
     'NestedField',
     'ListField',
+    'DictField',
     'EnumField',
     )
 
@@ -203,6 +204,22 @@ class ListField(DevilField):
         for v in value:
             ret.append(self.itemspec.serialize(v, entity, request))
         return ret
+
+
+class DictValidator(object):
+    """ Validate that the field is of type ``dict``. """
+    def __call__(self, value):
+        if not isinstance(value, dict):
+            raise ValidationError('was expecting a dict field but got "%s"' %
+                                  (type(value).__name__,))
+
+
+class DictField(DevilField):
+    """ Dictinary field. """
+
+    default_validators = [
+        DictValidator(),
+        ]
 
 
 class EnumValidator(object):
