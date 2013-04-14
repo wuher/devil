@@ -374,6 +374,8 @@ class Resource(object):
         else:
             if exc.has_code(codes.INTERNAL_SERVER_ERROR):
                 logging.getLogger('devil').error('devil caught http error: ' + str(exc), exc_info=True)
+            else:
+                logging.getLogger('devil').error('devil caught http error: ' + str(exc))
             content = exc.content or ''
             return HttpResponse(content=content, status=exc.get_code_num())
 
