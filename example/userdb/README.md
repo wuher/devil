@@ -26,13 +26,13 @@ You can start the application by navigating into `examples/userdb` and saying:
 You can now test the api by issuing HTTP requests to above mentioned URLs. For
 example:
 
-    $ curl http://localhost:8000/user
-    $ curl -v http://localhost:8000/user/ -X POST -d '{"name": "Luke Skywalker", "age": 44}' -H 'Content-Type: application/json'
-    $ curl http://localhost:8000/user/1
-    $ curl -v http://localhost:8000/user/1 -X PUT -d '{"name": "Luke Skywalker", "age": 33}' -H 'Content-Type: application/json'
-    $ curl http://localhost:8000/user/1
-    $ curl -v http://localhost:8000/user/1 -X DELETE
-    $ curl http://localhost:8000/user
+    $ curl http://localhost:8000/user/ -H 'Accept: application/json'
+    $ curl -i http://localhost:8000/user/ -X POST -d '{"name": "Luke Skywalker", "age": 44}' -H 'Content-Type: application/json'
+    $ curl http://localhost:8000/user/1.json
+    $ curl -i http://localhost:8000/user/1 -X PUT -d '{"name": "Luke Skywalker", "age": 33}' -H 'Content-Type: application/json'
+    $ curl http://localhost:8000/user/1?format=json
+    $ curl -i http://localhost:8000/user/1 -X DELETE
+    $ curl http://localhost:8000/user/
 
 
 The actual implementation can be found in the `api/resources.py` file. In that
@@ -47,10 +47,13 @@ modifications were made:
   unnecessary applicationa and middlewares from `settings.py`. See
   following configuration keys in the settings file for details:
   `DATABASES`, `MIDDLEWARE_CLASSES`, `INSTALLED_APPS`.
-  2. Implement models. You can see the file `api/models.py` for details.
-  3. Implement the user resource. You can see the file `api/resources.py`
+  2. make sure that devil is in `PYTHONPATH`. We did this by adding 
+     the path `../..` into `PYTHONPATH` at runtime in `manage.py`. 
+     Normally, you would install Devil under `site-packages`
+  3. Implement models. You can see the file `api/models.py` for details.
+  4. Implement the user resource. You can see the file `api/resources.py`
   for details.
-  4. Create the URL mapping. You can see the file `urls.py` for details.
+  5. Create the URL mapping. You can see the file `urls.py` for details.
 
 All tests are implemented in the file `api/tests.py`. You can run them (by
 Django convention) by saying `python manage.py test api`.

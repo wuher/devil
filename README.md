@@ -288,7 +288,7 @@ def post(self, data, request):
         # you can return a python dictionary
         return {
             'name': 'Yoda',
-            '876',
+            'age': '876',
         }
 ```
 

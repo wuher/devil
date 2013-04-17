@@ -257,7 +257,6 @@ class Resource(object):
 
         :param request: the HTTP request
         :param data: the parsed data
-        :type data: dictionary
         :return: if validation is performed and succeeds the data is converted
                  into whatever format the validation uses (by default Django's
                  Forms) If not, the data is returned unchanged.
@@ -375,6 +374,8 @@ class Resource(object):
         else:
             if exc.has_code(codes.INTERNAL_SERVER_ERROR):
                 logging.getLogger('devil').error('devil caught http error: ' + str(exc), exc_info=True)
+            else:
+                logging.getLogger('devil').error('devil caught http error: ' + str(exc))
             content = exc.content or ''
             return HttpResponse(content=content, status=exc.get_code_num())
 
