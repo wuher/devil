@@ -100,7 +100,13 @@ class Factory(object):
                 value = self._create_value(data, field_name, self.spec)
             except ValidationError, e:
                 if field_name not in self.default_create_values:
-                    errors[field_name] = e.messages
+                    if hasattr(e, 'message_dict'):
+                        # prefix error keys with top level field name
+                        errors.update(dict(zip(
+                            [field_name + '.' + key for key in e.message_dict.keys()],
+                            e.message_dict.values())))
+                    else:
+                        errors[field_name] = e.messages
             else:
                 key_name = self.property_name_map[field_name]
                 prototype[key_name] = value
@@ -149,7 +155,13 @@ class Factory(object):
                 if should_we_insert(value, field_spec):
                     ret[field_name] = value
             except ValidationError, e:
-                errors[field_name] = e.messages
+                if hasattr(e, 'message_dict'):
+                    # prefix error keys with top level field name
+                    errors.update(dict(zip(
+                        [field_name + '.' + key for key in e.message_dict.keys()],
+                        e.message_dict.values())))
+                else:
+                    errors[field_name] = e.messages
 
         if errors:
             raise ValidationError(errors)
