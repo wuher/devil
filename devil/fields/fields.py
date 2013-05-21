@@ -139,7 +139,7 @@ class NestedField(Representation):
         if not value:
             return value
 
-        return self.factory.serialize(value)
+        return self.factory.serialize(value, request)
 
     def to_python(self, value):
         raise NotImplemented("nested field doesn't support to_python")
