@@ -14,12 +14,14 @@ from devil.mappers.jsonmapper import JsonMapper
 
 
 from devil.resource import Resource
+from devil.docs import DocumentedResource
 from devil.fields import Representation
 
 
 __all__ = (
     Resource,
     Representation,
+    DocumentedResource,
     )
 
 

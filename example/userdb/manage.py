@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+import os, sys
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..'))
+
 from django.core.management import execute_manager
 import imp
 try:
