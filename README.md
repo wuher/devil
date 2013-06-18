@@ -3,6 +3,10 @@
 [Devil][13] aims to be simple to use REST framework for Django. Devil is
 influenced by [piston][1].
 
+*Update 13.6.2013: This project is very much alive and production quality even
+though there hasn't been any commits lately. Devil serves thousands requests
+every day.
+
 ## Key Characteristics
 
   - `Resource` is the key concept, everything builds around it.
