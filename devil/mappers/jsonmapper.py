@@ -6,7 +6,11 @@
 #
 
 
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from devil.datamapper import DataMapper
 from devil import errors
 

@@ -89,7 +89,7 @@ SECRET_KEY = '$an-tk0#b#q4dh3cz2*q(j9kzt+ysfia=u0as1v)tc3$m+qy85'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    # 'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -113,7 +113,7 @@ TEMPLATE_DIRS = (
 
 ACL_RESOURCES = (
     'deviltest.simple.urls.acl_resources',
-    )
+)
 
 INSTALLED_APPS = (
     # 'django_pdb',
@@ -136,18 +136,4 @@ FIXTURE_DIRS = ('simple/fixtures',)
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
 }

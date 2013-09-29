@@ -5,16 +5,21 @@
 #
 
 
-from django.conf.urls.defaults import patterns, url
+try:
+    from django.conf.urls import patterns, url
+except ImportError:
+    from django.conf.urls.defaults import patterns, url
+
 from . import resources
 
 
 first = resources.MyTestResource()
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^first/(?P<first_id>\d{1,7})?$', first),
-    )
+)
 
 
 #

@@ -6,16 +6,22 @@
 #
 
 
-from django.conf.urls.defaults import patterns, include, url
+try:
+    from django.conf.urls import patterns, url, include
+except ImportError:
+    from django.conf.urls.defaults import patterns, url, include
+
 
 # admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^simple/', include('deviltest.simple.urls')),
     url(r'^docs/', include('deviltest.docs.urls')),
+    url(r'^doc/', include('devil.docs.urls')),
     # uncomment to enable admin:
     # (r'^admin/', include(admin.site.urls)),
 )
