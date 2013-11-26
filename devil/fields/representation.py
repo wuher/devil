@@ -2,9 +2,8 @@
 #  Representation.py ---
 #
 
-
+from copy import copy
 from django import forms
-from copy import deepcopy
 from django.core.exceptions import ValidationError
 
 
@@ -24,7 +23,8 @@ class BaseRepresentation(object):
         ``base_fields`` is left as a backup. You shouldn't modify it.
         """
 
-        self.fields = deepcopy(self.base_fields)
+        # note: for performance reasons we only create shallow copy here
+        self.fields = copy(self.base_fields)
 
     def validate(self, data=None):
         """ Validate the data
@@ -76,7 +76,7 @@ class BaseRepresentation(object):
 def get_declared_fields(bases, attrs):
     """ Find all fields and return them as a dictionary.
 
-    note:: this is function is copied and modified
+    note:: this function is copied and modified
         from django.forms.get_declared_fields
     """
 
