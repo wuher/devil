@@ -360,7 +360,9 @@ class Resource(object):
         todo: this should be more informative..
         """
 
-        logging.getLogger('devil').error('devil caught: ' + str(exc), exc_info=True)
+        logging.getLogger('devil').error(
+            'while doing %s on %s with [%s], devil caught: %s' % (
+                request.method, request.path_info, str(request.GET), str(exc)), exc_info=True)
 
         if settings.DEBUG:
             raise
