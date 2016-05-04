@@ -3,9 +3,7 @@
 [Devil][13] aims to be simple to use REST framework for Django. Devil is
 influenced by [piston][1].
 
-**Update 13.6.2013**: This project is very much alive and production quality even
-though there hasn't been any commits lately. Devil serves thousands requests
-every day.
+**Update 2.5.2016: Unmaintained.** While the framework is being used in production, I have not tested it with recent versions of Django (Version 1.6 is what we are running).
 
 ## Key Characteristics
 
